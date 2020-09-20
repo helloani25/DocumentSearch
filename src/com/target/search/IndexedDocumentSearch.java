@@ -38,11 +38,11 @@ public class IndexedDocumentSearch implements DocumentSearch {
     public void setup() throws IOException {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
         setupElasticsearch();
-//        if (!checkIfIndexExists()) {
-//            createIndex();
-//            putIndexMapping();
-//        }
-//        indexFiles();
+        if (!checkIfIndexExists()) {
+            createIndex();
+            putIndexMapping();
+        }
+        indexFiles();
     }
 
     @Override
@@ -71,17 +71,9 @@ public class IndexedDocumentSearch implements DocumentSearch {
     }
 
     private void setupElasticsearch()  {
-//        client = new RestHighLevelClient(
-//                RestClient.builder(
-//                        new HttpHost("localhost", 9200, "http")));
          client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http"))
                 .setRequestConfigCallback(
                 requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(60).setSocketTimeout(60)));
-        try {
-            client.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void createIndex() throws IOException {
@@ -122,8 +114,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
         request.humanReadable(true);
         request.includeDefaults(false);
         request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN_CLOSED);
-        boolean exists = client.indices().exists(request, RequestOptions.DEFAULT);
-        return exists;
+        return client.indices().exists(request, RequestOptions.DEFAULT);
     }
 
     private void indexFiles() throws IOException {

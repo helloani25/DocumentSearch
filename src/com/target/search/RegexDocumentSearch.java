@@ -1,16 +1,13 @@
 package com.target.search;
 
 
-import java.nio.file.Path;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RegexDocumentSearch implements DocumentSearch {
-    Map<Path, String> fileMap;
-
+    Map<String, String> fileMap;
 
     public void setup() {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
@@ -19,40 +16,42 @@ public class RegexDocumentSearch implements DocumentSearch {
     @Override
     public void getSearchResults(String phrase) {
         System.out.println("Search Results:");
+        Map<Integer, List<String>> treeMap = new TreeMap<>(Collections.reverseOrder());
         long startTime = System.nanoTime();
-        for (Path file:fileMap.keySet()) {
-            if (findMatch(fileMap.get(file), phrase.trim())) {
-                System.out.println(file.getFileName().toString() + " - matches");
-            } else {
-                System.out.println(file.getFileName().toString() + " - no match");
-            }
+        for (String filename:fileMap.keySet()) {
+            int count = findMatch(fileMap.get(filename), phrase.trim());
+            List<String> list = treeMap.getOrDefault(count, new ArrayList<>());
+            list.add(filename);
+            treeMap.put(count, list);
         }
         long endTime = System.nanoTime();
         long msUsed = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        printSearchResults(treeMap);
         System.out.println("Elapsed Time : " + msUsed+"ms");
     }
 
-    private boolean findMatch(String content, String phrase) {
-        Pattern pattern = Pattern.compile("\\b("+phrase+")\\b");
-        Matcher matcher = pattern.matcher(content);
-        if(matcher.find()) {
-            //get the MatchResult Object
-            MatchResult result = matcher.toMatchResult();
-            return true;
-        }
-
+    private int findMatch(String content, String phrase) {
+        phrase = phrase.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|:|\\?|\\-)","");
         //Match with special characters removed
-        content = content.replaceAll("\\[\\d\\]", "");
         content = content.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|:|\\?|\\-)","" );
-        pattern = Pattern.compile("\\b("+phrase+")\\b", Pattern.CASE_INSENSITIVE);
-        matcher = pattern.matcher(content);
-        if(matcher.find()) {
-            //get the MatchResult Object
-            MatchResult result = matcher.toMatchResult();
-            return true;
+        int count = 0;
+        Pattern pattern = Pattern.compile("\\b("+phrase+")\\b", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(content);
+        while(matcher.find()) {
+            count++;
         }
+        return count;
+    }
 
-        return false;
+    private void printSearchResults(Map<Integer, List<String>> treeMap) {
+        for (int count: treeMap.keySet())
+        if (count == 0) {
+            for (String filename: treeMap.get(count))
+                System.out.println(filename + " - no match");
+        } else {
+            for (String filename: treeMap.get(count))
+                System.out.println(filename + " - matches");
+        }
     }
 
 }

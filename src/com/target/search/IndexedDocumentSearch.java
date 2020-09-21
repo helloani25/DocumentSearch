@@ -25,21 +25,16 @@ import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class IndexedDocumentSearch implements DocumentSearch {
 
-    private Map<Path, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
+    private Map<String, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
     private final static Logger logger = LogManager.getLogger(IndexedDocumentSearch.class);
-    private long timeElapased = 0;
+    private long timeElapsed = 0;
 
     public void setup() {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
@@ -71,16 +66,16 @@ public class IndexedDocumentSearch implements DocumentSearch {
                 .put("index.number_of_replicas", 0)
         );
         createIndexRequest.waitForActiveShards();
-        createIndexRequest.mapping(getIndexMapping(client));
+        createIndexRequest.mapping(getIndexMapping());
         long startTime = System.nanoTime();
         CreateIndexResponse createIndexResponse = client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
         long endTime = System.nanoTime();
-        timeElapased += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        timeElapsed += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
         if (!createIndexResponse.isAcknowledged())
             throw new RuntimeException("Index target was not created");
     }
 
-    private Map<String, Object> getIndexMapping(RestHighLevelClient client) throws IOException {
+    private Map<String, Object> getIndexMapping() {
         Map<String, Object> jsonMap = new HashMap<>();
         Map<String, Object> content = new HashMap<>();
         content.put("type", "text");
@@ -109,19 +104,19 @@ public class IndexedDocumentSearch implements DocumentSearch {
         BulkRequest request = new BulkRequest();
         request.timeout(TimeValue.timeValueMinutes(2));
         request.waitForActiveShards();
-        for (Path file : fileMap.keySet()) {
+        for (String filename : fileMap.keySet()) {
             id++;
-            String filename = file.getFileName().toString();
+
             IndexRequest indexRequest = new IndexRequest("target")
                     .id(String.valueOf(id))
                     .source("filename", filename ,
-                            "content", fileMap.get(file));
+                            "content", fileMap.get(filename));
             request.add(indexRequest);
 
         }
         BulkResponse bulkResponse = client.bulk(request, RequestOptions.DEFAULT);
         if (bulkResponse.getIngestTookInMillis() != -1)
-            timeElapased += bulkResponse.getIngestTookInMillis();
+            timeElapsed += bulkResponse.getIngestTookInMillis();
         if (bulkResponse.status() != RestStatus.OK)
             throw new RuntimeException("Indexing for target was not successful");
 
@@ -143,7 +138,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
             client.indices().refresh(refreshRequest, RequestOptions.DEFAULT);
             long endTime = System.nanoTime();
             long msUsed = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-            timeElapased += msUsed;
+            timeElapsed += msUsed;
 
         } catch (ElasticsearchException|IOException exception) {
                 throw new RuntimeException("Refreshing before search for target was not successful");
@@ -158,13 +153,6 @@ public class IndexedDocumentSearch implements DocumentSearch {
         String[] excludeFields = new String[]{"content"};
         searchSourceBuilder.fetchSource(includeFields, excludeFields);
         searchSourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
-
-        HighlightBuilder highlightBuilder = new HighlightBuilder();
-        HighlightBuilder.Field highlightTitle =
-                new HighlightBuilder.Field("content");
-        highlightTitle.highlighterType("unified");
-        highlightBuilder.field(highlightTitle);
-        searchSourceBuilder.highlighter(highlightBuilder);
         searchRequest.source(searchSourceBuilder);
 
         return searchRequest;
@@ -177,31 +165,30 @@ public class IndexedDocumentSearch implements DocumentSearch {
         searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
 
         if (searchResponse.status() == RestStatus.OK) {
-            long timeElapsed = searchResponse.getTook().millis() + timeElapased;
+            timeElapsed += searchResponse.getTook().millis();
             SearchHits searchHits = searchResponse.getHits();
-            Set<String> fileSet = getSuccessSearch(searchHits);
-            printSuccessSearch(phrase, fileSet);
+            Set<String> fileSet = printMatchSearch(searchHits);
+            printNoMatchSearch(fileSet);
             System.out.println("Elapsed Time : " + timeElapsed+"ms");
         }
     }
 
-    private void printSuccessSearch(String phrase, Set<String> fileSet) {
-        System.out.println("Search Results:");
-        for (Path file : fileMap.keySet()) {
-            if (fileSet.contains(file.getFileName().toString())) {
-                System.out.println(file.getFileName().toString() + " - matches");
-            } else {
-                System.out.println(file.getFileName().toString() + " - no match");
+    private void printNoMatchSearch(Set<String> fileSet) {
+        for (String filename : fileMap.keySet()) {
+            if (!fileSet.contains(filename)) {
+                System.out.println(filename + " - no match");
             }
         }
     }
 
-    private Set<String> getSuccessSearch(SearchHits searchHits) {
+    private Set<String> printMatchSearch(SearchHits searchHits) {
+        System.out.println("Search Results:");
         Set<String> fileSet = new HashSet<>();
         for (SearchHit hit : searchHits) {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
             String filename = (String) sourceAsMap.get("filename");
             fileSet.add(filename);
+            System.out.println(filename + " - matches");
         }
         return fileSet;
     }

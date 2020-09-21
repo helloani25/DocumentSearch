@@ -1,14 +1,10 @@
 package com.target.search;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class SimpleDocumentSearch implements DocumentSearch {
-    private Map<String, List<String[]>> fileMapTokenzied;
+    private Map<String, String[]> fileMapTokenzied;
     private long startTime, endTime;
     public SimpleDocumentSearch() {
         fileMapTokenzied = new HashMap<>();
@@ -16,78 +12,62 @@ public class SimpleDocumentSearch implements DocumentSearch {
 
     public void setUp() {
         startTime = System.nanoTime();
-        Map<Path, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
+        Map<String, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
         tokenizeText(fileMap);
-        filterAndTokenizeText(fileMap);
     }
 
     public void getSearchResults(String phrase) {
         System.out.println("Search Results:");
-        for (String file: fileMapTokenzied.keySet()) {
-            if (findMatch(fileMapTokenzied.get(file), phrase.trim())) {
-                System.out.println(file + " - matches");
-            } else {
-                System.out.println(file + " - no match");
-            }
+        TreeMap<Integer, List<String>> treeMap = new TreeMap<>(Collections.reverseOrder());
+        for (String filename: fileMapTokenzied.keySet()) {
+            int count = findMatch(fileMapTokenzied.get(filename), phrase.trim());
+            List<String> list = treeMap.getOrDefault(count, new ArrayList<>());
+            list.add(filename);
+            treeMap.put(count, list);
         }
         endTime = System.nanoTime();
         long msUsed = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        printSearchResults(treeMap);
         System.out.println("Elapsed Time : " + msUsed+"ms");
     }
 
-    boolean findMatch(List<String[]> content, String phrase) {
-        phrase = phrase.replaceAll("(\"|!|\\[|\\]|\\,|\\.|:|\\?)","" );
-        String[] tokens = phrase.split("\\s+");
-        int j = 0;
-        for (int i = 0; i < content.get(0).length; i++) {
-            while ( j < tokens.length && (content.get(0)[i].compareTo(tokens[j]) == 0 || content.get(0)[i].compareToIgnoreCase(tokens[j]) == 0)) {
+    int findMatch(String[] content, String phrase) {
+        phrase = phrase.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?)","" );
+        String[] tokens = phrase.split("(\\s+|\\-)");
+        int j = 0, count = 0;
+        for (int i = 0; i < content.length; i++) {
+            while ( j < tokens.length && (content[i].compareTo(tokens[j]) == 0 || content[i].compareToIgnoreCase(tokens[j]) == 0)) {
                 i++;
                 j++;
             }
             if (j == tokens.length) {
-                return true;
+                count++;
             }
             j = 0;
         }
-        for (int i = 0; i < content.get(1).length; i++) {
-            while ( j < tokens.length && (content.get(1)[i].compareTo(tokens[j]) == 0 || content.get(1)[i].compareToIgnoreCase(tokens[j]) == 0)) {
-                i++;
-                j++;
-            }
-            if (j == tokens.length) {
-                return true;
-            }
-            j = 0;
-        }
-        return false;
+        return count;
     }
 
-    private void tokenizeText(Map<Path, String> fileMap) {
-        for (Path file: fileMap.keySet()) {
-            String[] words = fileMap.get(file).split("(\\s+)");
+    private void tokenizeText(Map<String, String> fileMap) {
+        for (String filename: fileMap.keySet()) {
+            String[] words = fileMap.get(filename).split("(\\s+|\\-)");
             for (int i = 0; i < words.length; i++) {
                 words[i] = words[i].strip();
-                words[i] = words[i].replaceAll("\\[\\d\\]", "");
                 words[i] = words[i].replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?)","" );
-
             }
-            List<String[]> list = new ArrayList<>(2);
-            list.add(words);
-            fileMapTokenzied.put(file.getFileName().toString(),list);
+            fileMapTokenzied.put(filename, words);
         }
     }
 
-    private void filterAndTokenizeText(Map<Path, String> fileMap) {
-        for (Path file: fileMap.keySet()) {
-            String[] words = fileMap.get(file).split("(\\s+|\\-)");
-            for (int i = 0; i < words.length; i++) {
-                words[i]= words[i].strip();
-                words[i] = words[i].replaceAll("(\"|!|\\[|\\]|\\,|\\.|:|\\?)","" );
+    private void printSearchResults(Map<Integer, List<String>> treeMap) {
+        for (int count: treeMap.keySet())
+            if (count == 0) {
+                for (String filename: treeMap.get(count))
+                    System.out.println(filename + " - no match");
+            } else {
+                for (String filename: treeMap.get(count))
+                    System.out.println(filename + " - matches");
             }
-            List<String[]> list = fileMapTokenzied.get(file.getFileName().toString());
-            list.add(words);
-            fileMapTokenzied.put(file.getFileName().toString(),list);
-
-        }
     }
+
 }

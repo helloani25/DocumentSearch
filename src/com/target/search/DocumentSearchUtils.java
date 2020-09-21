@@ -17,10 +17,10 @@ import java.util.stream.Stream;
 
 class DocumentSearchUtils {
 
-    private static Map<Path, String> filesMap = new HashMap<>();
+    private static Map<String, String> filesMap = new HashMap<>();
     private final static Logger logger = LogManager.getLogger(DocumentSearch.class);
 
-    static Map<Path, String> readDirectory(String directory) {
+    static Map<String, String> readDirectory(String directory) {
         if (filesMap.keySet().size() == 0) {
             iterateAllFilesInDirectory(directory);
         }
@@ -32,7 +32,7 @@ class DocumentSearchUtils {
             paths.filter(Files::isRegularFile).forEach(file -> {
                 String contents = readFile(file);
                 if (contents != null)
-                    filesMap.put(file, readFile(file)); });
+                    filesMap.put(file.getFileName().toString(), readFile(file)); });
         } catch (IOException x) {
             logger.error(x.getMessage());
             System.err.println("caught exception: " + x.getMessage());

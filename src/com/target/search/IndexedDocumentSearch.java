@@ -3,8 +3,8 @@ package com.target.search;
 import org.apache.http.HttpHost;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -12,12 +12,12 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.IndicesOptions;
-import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
-import org.elasticsearch.client.indices.PutMappingRequest;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -55,9 +55,8 @@ public class IndexedDocumentSearch implements DocumentSearch {
             // client gets closed automatically
             if (!checkIfIndexExists(client)) {
                 createIndex(client);
-                putIndexMapping(client);
+                indexFiles(client);
             }
-            indexFiles(client);
             executeSearchRequest(client, phrase);
 
         } catch (IOException e) {
@@ -71,6 +70,8 @@ public class IndexedDocumentSearch implements DocumentSearch {
                 .put("index.number_of_shards", 1)
                 .put("index.number_of_replicas", 0)
         );
+        createIndexRequest.waitForActiveShards();
+        createIndexRequest.mapping(getIndexMapping(client));
         long startTime = System.nanoTime();
         CreateIndexResponse createIndexResponse = client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
         long endTime = System.nanoTime();
@@ -79,8 +80,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
             throw new RuntimeException("Index target was not created");
     }
 
-    private void putIndexMapping(RestHighLevelClient client) throws IOException {
-        PutMappingRequest request = new PutMappingRequest("target");
+    private Map<String, Object> getIndexMapping(RestHighLevelClient client) throws IOException {
         Map<String, Object> jsonMap = new HashMap<>();
         Map<String, Object> content = new HashMap<>();
         content.put("type", "text");
@@ -92,15 +92,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
         properties.put("content", content);
         properties.put("filename", filename);
         jsonMap.put("properties", properties);
-        request.source(jsonMap);
-        request.setTimeout(TimeValue.timeValueSeconds(1));
-        request.setMasterTimeout(TimeValue.timeValueSeconds(1));
-        long startTime = System.nanoTime();
-        AcknowledgedResponse putMappingResponse = client.indices().putMapping(request, RequestOptions.DEFAULT);
-        long endTime = System.nanoTime();
-        timeElapased += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-        if (!putMappingResponse.isAcknowledged())
-            throw new RuntimeException("Mapping was not persisted for Document index target");
+        return jsonMap;
     }
 
     private boolean checkIfIndexExists(RestHighLevelClient client) throws IOException {
@@ -116,8 +108,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
         int id = 0;
         BulkRequest request = new BulkRequest();
         request.timeout(TimeValue.timeValueMinutes(2));
-        request.waitForActiveShards(1);
-
+        request.waitForActiveShards();
         for (Path file : fileMap.keySet()) {
             id++;
             String filename = file.getFileName().toString();
@@ -142,7 +133,21 @@ public class IndexedDocumentSearch implements DocumentSearch {
                 throw new RuntimeException("Shard level failure");
             }
         }
+        refreshBeforeSearch(client);
+    }
 
+    private void refreshBeforeSearch(RestHighLevelClient client) {
+        try {
+            long startTime = System.nanoTime();
+            RefreshRequest refreshRequest = new RefreshRequest("target");
+            client.indices().refresh(refreshRequest, RequestOptions.DEFAULT);
+            long endTime = System.nanoTime();
+            long msUsed = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+            timeElapased += msUsed;
+
+        } catch (ElasticsearchException|IOException exception) {
+                throw new RuntimeException("Refreshing before search for target was not successful");
+        }
     }
 
     private SearchRequest buildSearchRequest(String phrase) {

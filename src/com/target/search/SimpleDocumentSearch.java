@@ -36,6 +36,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
     }
 
     boolean findMatch(List<String[]> content, String phrase) {
+        phrase = phrase.replaceAll("(\"|!|\\[|\\]|\\,|\\.|:|\\?)","" );
         String[] tokens = phrase.split("\\s+");
         int j = 0;
         for (int i = 0; i < content.get(0).length; i++) {
@@ -48,8 +49,8 @@ public class SimpleDocumentSearch implements DocumentSearch {
             }
             j = 0;
         }
-        for (int i = 0; i < content.get(0).length; i++) {
-            while ( j < tokens.length && (content.get(0)[i].compareTo(tokens[j]) == 0 || content.get(0)[i].compareToIgnoreCase(tokens[j]) == 0)) {
+        for (int i = 0; i < content.get(1).length; i++) {
+            while ( j < tokens.length && (content.get(1)[i].compareTo(tokens[j]) == 0 || content.get(1)[i].compareToIgnoreCase(tokens[j]) == 0)) {
                 i++;
                 j++;
             }
@@ -66,7 +67,8 @@ public class SimpleDocumentSearch implements DocumentSearch {
             String[] words = fileMap.get(file).split("(\\s+)");
             for (int i = 0; i < words.length; i++) {
                 words[i] = words[i].strip();
-                words[i] = words[i].replaceAll("(\"|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?)","" );
+                words[i] = words[i].replaceAll("\\[\\d\\]", "");
+                words[i] = words[i].replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?)","" );
 
             }
             List<String[]> list = new ArrayList<>(2);
@@ -80,8 +82,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
             String[] words = fileMap.get(file).split("(\\s+|\\-)");
             for (int i = 0; i < words.length; i++) {
                 words[i]= words[i].strip();
-                words[i] = words[i].replaceAll("\\[\\d\\]", "");
-                words[i] = words[i].replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|:|\\?)","" );
+                words[i] = words[i].replaceAll("(\"|!|\\[|\\]|\\,|\\.|:|\\?)","" );
             }
             List<String[]> list = fileMapTokenzied.get(file.getFileName().toString());
             list.add(words);

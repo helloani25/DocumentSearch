@@ -15,14 +15,9 @@ public class Main {
         regexDocumentSearch.setup();
         regexDocumentSearch.getSearchResults(phrase);
         IndexedDocumentSearch indexedDocumentSearch = new IndexedDocumentSearch();
+        indexedDocumentSearch.setup();
+        indexedDocumentSearch.getSearchResults(phrase);
 
-        try {
-            indexedDocumentSearch.setup();
-            indexedDocumentSearch.getSearchResults(phrase);
-        } catch (IOException e) {
-            System.err.println("IndexedSearch Failed " + e.getMessage());
-            e.printStackTrace();
-        }
 
     }
 

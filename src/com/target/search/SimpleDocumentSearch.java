@@ -53,6 +53,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
             String[] words = fileMap.get(filename).split("(\\s+|\\-)");
             for (int i = 0; i < words.length; i++) {
                 words[i] = words[i].strip();
+                words[i] = words[i].replaceAll("\\[\\d\\]", "");
                 words[i] = words[i].replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?)","" );
             }
             fileMapTokenzied.put(filename, words);

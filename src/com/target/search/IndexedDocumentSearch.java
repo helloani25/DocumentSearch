@@ -39,7 +39,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
 
     private Map<Path, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
     private static Logger logger = LogManager.getLogger(IndexedDocumentSearch.class);
-
+    private long timeElapased = 0;
 
     public void setup() {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
@@ -71,7 +71,10 @@ public class IndexedDocumentSearch implements DocumentSearch {
                 .put("index.number_of_shards", 1)
                 .put("index.number_of_replicas", 0)
         );
+        long startTime = System.nanoTime();
         CreateIndexResponse createIndexResponse = client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
+        long endTime = System.nanoTime();
+        timeElapased += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
         if (!createIndexResponse.isAcknowledged())
             throw new RuntimeException("Index target was not created");
     }
@@ -92,7 +95,10 @@ public class IndexedDocumentSearch implements DocumentSearch {
         request.source(jsonMap);
         request.setTimeout(TimeValue.timeValueSeconds(1));
         request.setMasterTimeout(TimeValue.timeValueSeconds(1));
+        long startTime = System.nanoTime();
         AcknowledgedResponse putMappingResponse = client.indices().putMapping(request, RequestOptions.DEFAULT);
+        long endTime = System.nanoTime();
+        timeElapased += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
         if (!putMappingResponse.isAcknowledged())
             throw new RuntimeException("Mapping was not persisted for Document index target");
     }
@@ -123,6 +129,8 @@ public class IndexedDocumentSearch implements DocumentSearch {
 
         }
         BulkResponse bulkResponse = client.bulk(request, RequestOptions.DEFAULT);
+        if (bulkResponse.getIngestTookInMillis() != -1)
+            timeElapased += bulkResponse.getIngestTookInMillis();
         if (bulkResponse.status() != RestStatus.OK)
             throw new RuntimeException("Indexing for target was not successful");
 
@@ -163,14 +171,12 @@ public class IndexedDocumentSearch implements DocumentSearch {
 
         searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
 
-        Set<String> fileSet;
-        TimeValue took;
         if (searchResponse.status() == RestStatus.OK) {
-            took = searchResponse.getTook();
+            long timeElapsed = searchResponse.getTook().millis() + timeElapased;
             SearchHits searchHits = searchResponse.getHits();
-            fileSet = getSuccessSearch(searchHits);
+            Set<String> fileSet = getSuccessSearch(searchHits);
             printSuccessSearch(phrase, fileSet);
-            System.out.println("Elapsed Time : " + took.toString());
+            System.out.println("Elapsed Time : " + timeElapsed+"ms");
         }
     }
 

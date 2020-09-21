@@ -3,6 +3,7 @@ package com.target.search;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,6 +19,7 @@ public class RegexDocumentSearch implements DocumentSearch {
     @Override
     public void getSearchResults(String phrase) {
         System.out.println("Search Results:");
+        long startTime = System.nanoTime();
         for (Path file:fileMap.keySet()) {
             if (findMatch(fileMap.get(file), phrase.trim())) {
                 System.out.println(file.getFileName().toString() + " - matches");
@@ -25,6 +27,9 @@ public class RegexDocumentSearch implements DocumentSearch {
                 System.out.println(file.getFileName().toString() + " - no match");
             }
         }
+        long endTime = System.nanoTime();
+        long msUsed = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        System.out.println("Elapsed Time : " + msUsed+"ms");
     }
 
     private boolean findMatch(String content, String phrase) {

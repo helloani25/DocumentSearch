@@ -5,15 +5,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class SimpleDocumentSearch implements DocumentSearch {
     private Map<String, List<String[]>> fileMapTokenzied;
-
+    private long startTime, endTime;
     public SimpleDocumentSearch() {
         fileMapTokenzied = new HashMap<>();
     }
 
     public void setUp() {
+        startTime = System.nanoTime();
         Map<Path, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
         tokenizeText(fileMap);
         filterAndTokenizeText(fileMap);
@@ -28,14 +30,16 @@ public class SimpleDocumentSearch implements DocumentSearch {
                 System.out.println(file + " - no match");
             }
         }
+        endTime = System.nanoTime();
+        long msUsed = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        System.out.println("Elapsed Time : " + msUsed+"ms");
     }
 
     boolean findMatch(List<String[]> content, String phrase) {
         String[] tokens = phrase.split("\\s+");
         int j = 0;
         for (int i = 0; i < content.get(0).length; i++) {
-            String word = content.get(0)[i];
-            while ( j < tokens.length && (word.compareTo(tokens[j]) == 0 || word.compareToIgnoreCase(tokens[j]) == 0)) {
+            while ( j < tokens.length && (content.get(0)[i].compareTo(tokens[j]) == 0 || content.get(0)[i].compareToIgnoreCase(tokens[j]) == 0)) {
                 i++;
                 j++;
             }
@@ -45,8 +49,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
             j = 0;
         }
         for (int i = 0; i < content.get(0).length; i++) {
-            String word = content.get(0)[i];
-            while ( j < tokens.length && (word.compareTo(tokens[j]) == 0 || word.compareToIgnoreCase(tokens[j]) == 0)) {
+            while ( j < tokens.length && (content.get(0)[i].compareTo(tokens[j]) == 0 || content.get(0)[i].compareToIgnoreCase(tokens[j]) == 0)) {
                 i++;
                 j++;
             }

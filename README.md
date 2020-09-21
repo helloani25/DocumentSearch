@@ -28,3 +28,40 @@ replicas shards = 2 for each primary shard
 set filename index to false
 
 searchAfter for large number of documents to paginate
+
+
+
+###Connected Cities
+The connected cities uses Depth first search to search the path from the start city to the destination city.
+If the city is already visited, then it will not be visited again to avoid getting stuck in cycles. 
+Every city is connected itself. A mapping is maintained from the city to integer to save on space while computing
+the adjaceny list of the neighbouring cities from the starting city. 
+####Tools used
+
+1. Gradle
+2. Junit
+3. Java 11
+
+####Executing the Code
+1. Run using gradle
+   ```
+    gradle clean build
+   ```
+2. com.target.search.Main class is com.target.search.Main
+
+#### Examples of running the code
+File connected.txt is inside the Input directory
+
+```
+./gradlew run --args 'Tampa "New York" Input/connected.txt'
+
+./gradlew run --args 'Tampa Omaha Input/connected.txt'
+```
+
+```
+java -cp build/classes/java/main com/adm/connectedcities/ConnectedCities "New York" "Omaha" "Input/connected.txt"
+```
+#### Execute Tests
+```
+ ./gradlew clean test --info
+```

@@ -1,11 +1,9 @@
-import com.target.search.IndexedDocumentSearch;
-import com.target.search.RegexDocumentSearch;
-import com.target.search.SimpleDocumentSearch;
+package com.target.search;
 
 public class Main {
 
     public static void main(String... args) {
-        String phrase = "EVE";
+        String phrase = "The Gallo-Roman conflict predominated from 60 BC to 50 BC";
         SimpleDocumentSearch simpleDocumentSearch = new SimpleDocumentSearch();
         simpleDocumentSearch.setUp();
         simpleDocumentSearch.getSearchResults(phrase);
@@ -15,8 +13,5 @@ public class Main {
         IndexedDocumentSearch indexedDocumentSearch = new IndexedDocumentSearch();
         indexedDocumentSearch.setup();
         indexedDocumentSearch.getSearchResults(phrase);
-
-
     }
-
 }

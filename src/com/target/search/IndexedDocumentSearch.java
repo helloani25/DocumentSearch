@@ -1,6 +1,8 @@
 package com.target.search;
 
 import org.apache.http.HttpHost;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -32,51 +34,35 @@ import java.util.concurrent.TimeUnit;
 
 public class IndexedDocumentSearch implements DocumentSearch {
 
-    private RestHighLevelClient client;
     private Map<Path, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
+    private static Logger logger = LogManager.getLogger(IndexedDocumentSearch.class);
 
-    public void setup() throws IOException {
+
+    public void setup() {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
-        setupElasticsearch();
-        if (!checkIfIndexExists()) {
-            createIndex();
-            putIndexMapping();
-        }
-        indexFiles();
     }
 
     @Override
     public void getSearchResults(String phrase) {
-
-        setupElasticsearch();
-        SearchRequest searchRequest = buildSearchRequest(phrase);
-        SearchResponse searchResponse;
-        try {
-            searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
-
-            Set<String> fileSet;
-            TimeValue took;
-            if (searchResponse.status() == RestStatus.OK) {
-                took = searchResponse.getTook();
-                SearchHits searchHits = searchResponse.getHits();
-                fileSet = getSuccessSearch(searchHits);
-                printSuccessSearch(phrase, fileSet);
-                System.out.println("Elapsed Time : " + took.toString());
+        logger.debug("Inside get search results");
+        try (RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http"))
+                .setRequestConfigCallback(
+                        requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(5000).setSocketTimeout(60000)))) {
+            // do something with the client
+            // client gets closed automatically
+            if (!checkIfIndexExists(client)) {
+                createIndex(client);
+                putIndexMapping(client);
             }
-            client.close();
+            indexFiles(client);
+            executeSearchRequest(client, phrase);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
     }
 
-    private void setupElasticsearch()  {
-         client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http"))
-                .setRequestConfigCallback(
-                requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(60).setSocketTimeout(60)));
-    }
-
-    private void createIndex() throws IOException {
+    private void createIndex(RestHighLevelClient client) throws IOException {
         CreateIndexRequest createIndexRequest = new CreateIndexRequest("target");
         createIndexRequest.settings(Settings.builder()
                 .put("index.number_of_shards", 1)
@@ -84,10 +70,10 @@ public class IndexedDocumentSearch implements DocumentSearch {
         );
         CreateIndexResponse createIndexResponse = client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
         if (!createIndexResponse.isAcknowledged())
-            throw new RuntimeException("Index target was not craeted");
+            throw new RuntimeException("Index target was not created");
     }
 
-    private void putIndexMapping() throws IOException {
+    private void putIndexMapping(RestHighLevelClient client) throws IOException {
         PutMappingRequest request = new PutMappingRequest("target");
         Map<String, Object> jsonMap = new HashMap<>();
         Map<String, Object> content = new HashMap<>();
@@ -101,14 +87,14 @@ public class IndexedDocumentSearch implements DocumentSearch {
         properties.put("filename", filename);
         jsonMap.put("properties", properties);
         request.source(jsonMap);
-        request.setTimeout(TimeValue.timeValueSeconds(15));
-        request.setMasterTimeout(TimeValue.timeValueSeconds(15));
+        request.setTimeout(TimeValue.timeValueSeconds(1));
+        request.setMasterTimeout(TimeValue.timeValueSeconds(1));
         AcknowledgedResponse putMappingResponse = client.indices().putMapping(request, RequestOptions.DEFAULT);
         if (!putMappingResponse.isAcknowledged())
             throw new RuntimeException("Mapping was not persisited for Document index target");
     }
 
-    private boolean checkIfIndexExists() throws IOException {
+    private boolean checkIfIndexExists(RestHighLevelClient client) throws IOException {
         GetIndexRequest request = new GetIndexRequest("target");
         request.local(false);
         request.humanReadable(true);
@@ -117,7 +103,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
         return client.indices().exists(request, RequestOptions.DEFAULT);
     }
 
-    private void indexFiles() throws IOException {
+    private void indexFiles(RestHighLevelClient client) throws IOException {
         int id = 0;
         BulkRequest request = new BulkRequest();
         request.timeout(TimeValue.timeValueMinutes(2));
@@ -125,9 +111,10 @@ public class IndexedDocumentSearch implements DocumentSearch {
 
         for (Path file : fileMap.keySet()) {
             id++;
+            String filename = file.getFileName().toString();
             IndexRequest indexRequest = new IndexRequest("target")
                     .id(String.valueOf(id))
-                    .source("filename", file.getFileName().toString(),
+                    .source("filename", filename ,
                             "content", fileMap.get(file));
             request.add(indexRequest);
 
@@ -151,7 +138,6 @@ public class IndexedDocumentSearch implements DocumentSearch {
         SearchRequest searchRequest = new SearchRequest("target");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchPhraseQuery("content", phrase));
-        searchRequest.source(searchSourceBuilder);
         String[] includeFields = new String[]{"filename"};
         String[] excludeFields = new String[]{"content"};
         searchSourceBuilder.fetchSource(includeFields, excludeFields);
@@ -163,17 +149,35 @@ public class IndexedDocumentSearch implements DocumentSearch {
         highlightTitle.highlighterType("unified");
         highlightBuilder.field(highlightTitle);
         searchSourceBuilder.highlighter(highlightBuilder);
+        searchRequest.source(searchSourceBuilder);
 
         return searchRequest;
+    }
+
+    private void  executeSearchRequest(RestHighLevelClient client, String phrase) throws IOException {
+        SearchRequest searchRequest = buildSearchRequest(phrase);
+        SearchResponse searchResponse;
+
+        searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+
+        Set<String> fileSet;
+        TimeValue took;
+        if (searchResponse.status() == RestStatus.OK) {
+            took = searchResponse.getTook();
+            SearchHits searchHits = searchResponse.getHits();
+            fileSet = getSuccessSearch(searchHits);
+            printSuccessSearch(phrase, fileSet);
+            System.out.println("Elapsed Time : " + took.toString());
+        }
     }
 
     private void printSuccessSearch(String phrase, Set<String> fileSet) {
         System.out.println("Search Results:");
         for (Path file : fileMap.keySet()) {
             if (fileSet.contains(file.getFileName().toString())) {
-                System.out.println(file + " " + phrase + " matches");
+                System.out.println(file + " " + phrase + " - matches");
             } else {
-                System.out.println(file + " " + phrase + " no match");
+                System.out.println(file + " " + phrase + " - no match");
             }
         }
     }

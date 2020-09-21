@@ -17,14 +17,11 @@ public class RegexDocumentSearch implements DocumentSearch {
 
     @Override
     public void getSearchResults(String phrase) {
-        boolean search = false;
-
         for (Path file:fileMap.keySet()) {
-            search = findMatch(fileMap.get(file), phrase.trim());
-            if (search) {
-                System.out.println(file + " " + phrase + " matches");
+            if (findMatch(fileMap.get(file), phrase.trim())) {
+                System.out.println(file.getFileName().toString() + " " + phrase + " - matches");
             } else {
-                System.out.println(file + " " + phrase + " no match");
+                System.out.println(file.getFileName().toString() + " " + phrase + " - no match");
             }
         }
     }
@@ -38,8 +35,8 @@ public class RegexDocumentSearch implements DocumentSearch {
             return true;
         }
         //Match with special characters removed
-        content.replaceAll("\\[\\d\\]", "");
-        content.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|:|\\?|\\-)","" );
+        content = content.replaceAll("\\[\\d\\]", "");
+        content = content.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|:|\\?|\\-)","" );
         pattern = Pattern.compile(phrase, Pattern.CASE_INSENSITIVE);
         matcher = pattern.matcher(content);
         if(matcher.find()) {

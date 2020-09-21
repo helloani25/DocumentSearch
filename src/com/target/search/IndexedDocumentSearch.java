@@ -91,7 +91,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
         request.setMasterTimeout(TimeValue.timeValueSeconds(1));
         AcknowledgedResponse putMappingResponse = client.indices().putMapping(request, RequestOptions.DEFAULT);
         if (!putMappingResponse.isAcknowledged())
-            throw new RuntimeException("Mapping was not persisited for Document index target");
+            throw new RuntimeException("Mapping was not persisted for Document index target");
     }
 
     private boolean checkIfIndexExists(RestHighLevelClient client) throws IOException {

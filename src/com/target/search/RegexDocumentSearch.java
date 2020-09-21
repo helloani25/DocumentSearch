@@ -27,17 +27,18 @@ public class RegexDocumentSearch implements DocumentSearch {
     }
 
     private boolean findMatch(String content, String phrase) {
-        Pattern pattern = Pattern.compile(phrase);
+        Pattern pattern = Pattern.compile("\\b("+phrase+")\\b");
         Matcher matcher = pattern.matcher(content);
         if(matcher.find()) {
             //get the MatchResult Object
             MatchResult result = matcher.toMatchResult();
             return true;
         }
+
         //Match with special characters removed
         content = content.replaceAll("\\[\\d\\]", "");
         content = content.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|:|\\?|\\-)","" );
-        pattern = Pattern.compile(phrase, Pattern.CASE_INSENSITIVE);
+        pattern = Pattern.compile("\\b("+phrase+")\\b", Pattern.CASE_INSENSITIVE);
         matcher = pattern.matcher(content);
         if(matcher.find()) {
             //get the MatchResult Object

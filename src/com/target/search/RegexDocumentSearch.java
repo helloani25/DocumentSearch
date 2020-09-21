@@ -17,11 +17,12 @@ public class RegexDocumentSearch implements DocumentSearch {
 
     @Override
     public void getSearchResults(String phrase) {
+        System.out.println("Search Results:");
         for (Path file:fileMap.keySet()) {
             if (findMatch(fileMap.get(file), phrase.trim())) {
-                System.out.println(file.getFileName().toString() + " " + phrase + " - matches");
+                System.out.println(file.getFileName().toString() + " - matches");
             } else {
-                System.out.println(file.getFileName().toString() + " " + phrase + " - no match");
+                System.out.println(file.getFileName().toString() + " - no match");
             }
         }
     }

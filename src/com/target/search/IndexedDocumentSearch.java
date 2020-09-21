@@ -175,9 +175,9 @@ public class IndexedDocumentSearch implements DocumentSearch {
         System.out.println("Search Results:");
         for (Path file : fileMap.keySet()) {
             if (fileSet.contains(file.getFileName().toString())) {
-                System.out.println(file + " " + phrase + " - matches");
+                System.out.println(file.getFileName().toString() + " - matches");
             } else {
-                System.out.println(file + " " + phrase + " - no match");
+                System.out.println(file.getFileName().toString() + " - no match");
             }
         }
     }

@@ -1,5 +1,8 @@
 package com.target.search;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
@@ -9,19 +12,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.stream.Stream;
-import java.util.logging.Logger;
 
 
 class DocumentSearchUtils {
 
     private static Map<Path, String> filesMap = new HashMap<>();
-    private final static Logger LOGGER = Logger.getLogger(DocumentSearch.class.getName());
-
-    DocumentSearchUtils() {
-        LOGGER.setLevel(Level.INFO);
-    }
+    private final static Logger logger = LogManager.getLogger(DocumentSearch.class);
 
     static Map<Path, String> readDirectory(String directory) {
         if (filesMap.keySet().size() == 0) {
@@ -37,6 +34,7 @@ class DocumentSearchUtils {
                 if (contents != null)
                     filesMap.put(file, readFile(file)); });
         } catch (IOException x) {
+            logger.error(x.getMessage());
             System.err.println("caught exception: " + x.getMessage());
         }
     }
@@ -59,6 +57,7 @@ class DocumentSearchUtils {
             }
             return sb.toString();
         } catch (IOException x) {
+            logger.error(x.getMessage());
             System.err.println("caught exception: " + x.getMessage());
         }
         return null;

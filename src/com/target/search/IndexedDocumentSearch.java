@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 public class IndexedDocumentSearch implements DocumentSearch {
 
     private Map<Path, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
-    private static Logger logger = LogManager.getLogger(IndexedDocumentSearch.class);
+    private final static Logger logger = LogManager.getLogger(IndexedDocumentSearch.class);
     private long timeElapased = 0;
 
     public void setup() {

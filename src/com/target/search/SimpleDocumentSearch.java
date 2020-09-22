@@ -17,7 +17,8 @@ public class SimpleDocumentSearch implements DocumentSearch {
     }
 
     public void getSearchResults(String phrase) {
-        System.out.println("Search Results:");
+        StringBuffer sb = new StringBuffer();
+        sb.append("Search Results:\n");
         TreeMap<Integer, List<String>> treeMap = new TreeMap<>(Collections.reverseOrder());
         for (String filename: fileMapTokenzied.keySet()) {
             int count = findMatch(fileMapTokenzied.get(filename), phrase.trim());
@@ -27,8 +28,9 @@ public class SimpleDocumentSearch implements DocumentSearch {
         }
         endTime = System.nanoTime();
         long msUsed = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-        printSearchResults(treeMap);
-        System.out.println("Elapsed Time : " + msUsed+"ms");
+        sb = printSearchResults(treeMap, phrase, sb);
+        sb.append("Elapsed Time : " + msUsed+"ms\n");
+        System.out.println(sb.toString());
     }
 
     int findMatch(String[] content, String phrase) {
@@ -60,15 +62,16 @@ public class SimpleDocumentSearch implements DocumentSearch {
         }
     }
 
-    private void printSearchResults(Map<Integer, List<String>> treeMap) {
+    private StringBuffer printSearchResults(Map<Integer, List<String>> treeMap, String phrase, StringBuffer sb) {
         for (int count: treeMap.keySet())
             if (count == 0) {
                 for (String filename: treeMap.get(count))
-                    System.out.println(filename + " - no match");
+                    sb.append(filename + " " + phrase + " - no match\n");
             } else {
                 for (String filename: treeMap.get(count))
-                    System.out.println(filename + " - matches");
+                    sb.append(filename + " " + phrase + " - matches\n");
             }
+        return sb;
     }
 
 }

@@ -8,14 +8,9 @@ import java.util.regex.Pattern;
 
 public class RegexDocumentSearch implements DocumentSearch {
     Map<String, String> fileMap;
-    long msUsed = 0;
 
     public void setup() {
-        long startTime = System.nanoTime();
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
-        long endTime = System.nanoTime();
-         msUsed += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-
     }
 
     @Override
@@ -30,7 +25,7 @@ public class RegexDocumentSearch implements DocumentSearch {
             treeMap.put(count, list);
         }
         long endTime = System.nanoTime();
-        msUsed += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        long msUsed = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
         printSearchResults(treeMap);
         System.out.println("Elapsed Time : " + msUsed+"ms");
     }

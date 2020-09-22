@@ -5,20 +5,23 @@ import java.util.concurrent.TimeUnit;
 
 public class SimpleDocumentSearch implements DocumentSearch {
     private Map<String, String[]> fileMapTokenzied;
-    private long startTime, endTime;
+    private long msUsed = 0;
     public SimpleDocumentSearch() {
         fileMapTokenzied = new HashMap<>();
     }
 
     public void setUp() {
-        startTime = System.nanoTime();
+        long startTime = System.nanoTime();
         Map<String, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
         tokenizeText(fileMap);
+        long endTime = System.nanoTime();
+        msUsed += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
     }
 
     public void getSearchResults(String phrase) {
         StringBuffer sb = new StringBuffer();
         sb.append("Search Results:\n");
+        long startTime = System.nanoTime();
         TreeMap<Integer, List<String>> treeMap = new TreeMap<>(Collections.reverseOrder());
         for (String filename: fileMapTokenzied.keySet()) {
             int count = findMatch(fileMapTokenzied.get(filename), phrase.trim());
@@ -26,8 +29,8 @@ public class SimpleDocumentSearch implements DocumentSearch {
             list.add(filename);
             treeMap.put(count, list);
         }
-        endTime = System.nanoTime();
-        long msUsed = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        long endTime = System.nanoTime();
+        msUsed += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
         sb = printSearchResults(treeMap, phrase, sb);
         sb.append("Elapsed Time : " + msUsed+"ms\n");
         System.out.println(sb.toString());

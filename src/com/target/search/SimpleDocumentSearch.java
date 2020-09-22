@@ -11,8 +11,8 @@ public class SimpleDocumentSearch implements DocumentSearch {
     }
 
     public void setUp() {
-        long startTime = System.nanoTime();
         Map<String, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
+        long startTime = System.nanoTime();
         tokenizeText(fileMap);
         long endTime = System.nanoTime();
         msUsed += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);

@@ -5,17 +5,17 @@ import java.util.concurrent.TimeUnit;
 
 public class SimpleDocumentSearch implements DocumentSearch {
     private Map<String, String[]> fileMapTokenzied;
-    private long msUsed = 0;
     public SimpleDocumentSearch() {
         fileMapTokenzied = new HashMap<>();
     }
+    // Thread local variable containing each thread's ID
+    private final ThreadLocal<Long> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0L);
 
     public void setUp() {
         Map<String, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
         long startTime = System.nanoTime();
         tokenizeText(fileMap);
-        long endTime = System.nanoTime();
-        msUsed += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        threadLocalMsUsed.set(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
     }
 
     public void getSearchResults(String phrase) {
@@ -29,10 +29,9 @@ public class SimpleDocumentSearch implements DocumentSearch {
             list.add(filename);
             treeMap.put(count, list);
         }
-        long endTime = System.nanoTime();
-        msUsed += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        threadLocalMsUsed.set(threadLocalMsUsed.get() + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
         sb = printSearchResults(treeMap, phrase, sb);
-        sb.append("Elapsed Time : " + msUsed+"ms\n");
+        sb.append("Elapsed Time : " + threadLocalMsUsed.get()+"ms\n");
         System.out.println(sb.toString());
     }
 

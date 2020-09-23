@@ -37,13 +37,8 @@ public class IndexedDocumentSearch implements DocumentSearch {
     private long timeElapsed = 0;
     private final static ThreadLocal<Long> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0L);
 
-    public void setup() {
+    public void setup() throws IOException {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
-    }
-
-    @Override
-    public void getSearchResults(String phrase) {
-        logger.debug("Inside get search results");
         try (RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http"))
                 .setRequestConfigCallback(
                         requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(5000).setSocketTimeout(60000)))) {
@@ -53,6 +48,15 @@ public class IndexedDocumentSearch implements DocumentSearch {
                 createIndex(client);
                 indexFiles(client);
             }
+        }
+    }
+
+    @Override
+    public void getSearchResults(String phrase) {
+        logger.debug("Inside get search results");
+        try (RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http"))
+                .setRequestConfigCallback(
+                        requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(5000).setSocketTimeout(60000)))) {
             executeSearchRequest(client, phrase);
 
         } catch (IOException e) {

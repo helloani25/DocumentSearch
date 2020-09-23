@@ -1,0 +1,20 @@
+version: "3.3"
+services:
+  elasticsearch:
+    image: elasticsearch:$ELASTIC_STACK_VERSION
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      ES_JAVA_OPTS: $JAVA_OPTS
+      # Change discovery type to enable the production mode and bootstrap checks
+      discovery.type: single-node
+    ports:
+      - "9200:9200"
+    networks:
+      - internal
+
+networks:
+  internal:
+
+volumes:
+  elasticsearch:

@@ -35,6 +35,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
     private Map<String, String> fileMap;
     private final static Logger logger = LogManager.getLogger(IndexedDocumentSearch.class);
     private long timeElapsed = 0;
+    private final static ThreadLocal<Long> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0L);
 
     public void setup() {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
@@ -69,8 +70,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
         createIndexRequest.mapping(getIndexMapping());
         long startTime = System.nanoTime();
         CreateIndexResponse createIndexResponse = client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
-        long endTime = System.nanoTime();
-        timeElapsed += TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        timeElapsed += TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
         if (!createIndexResponse.isAcknowledged())
             throw new RuntimeException("Index target was not created");
     }
@@ -136,9 +136,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
             long startTime = System.nanoTime();
             RefreshRequest refreshRequest = new RefreshRequest("target");
             client.indices().refresh(refreshRequest, RequestOptions.DEFAULT);
-            long endTime = System.nanoTime();
-            long msUsed = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-            timeElapsed += msUsed;
+            timeElapsed += TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 
         } catch (ElasticsearchException|IOException exception) {
                 throw new RuntimeException("Refreshing before search for target was not successful");
@@ -165,7 +163,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
         searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
 
         if (searchResponse.status() == RestStatus.OK) {
-            timeElapsed += searchResponse.getTook().millis();
+            threadLocalMsUsed.set(searchResponse.getTook().getMillis());
             SearchHits searchHits = searchResponse.getHits();
             Set<String> fileSet = printMatchSearch(searchHits);
             printNoMatchSearch(fileSet);

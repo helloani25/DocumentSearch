@@ -53,7 +53,6 @@ public class IndexedDocumentSearch implements DocumentSearch {
 
     @Override
     public void getSearchResults(String phrase) {
-        logger.debug("Inside get search results");
         try (RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http"))
                 .setRequestConfigCallback(
                         requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(5000).setSocketTimeout(60000)))) {
@@ -169,28 +168,29 @@ public class IndexedDocumentSearch implements DocumentSearch {
         if (searchResponse.status() == RestStatus.OK) {
             threadLocalMsUsed.set(searchResponse.getTook().getMillis());
             SearchHits searchHits = searchResponse.getHits();
-            Set<String> fileSet = printMatchSearch(searchHits);
-            printNoMatchSearch(fileSet);
-            System.out.println("Elapsed Time : " + timeElapsed+"ms");
+            StringBuilder sb = new StringBuilder();
+            Set<String> fileSet = printMatchSearch(searchHits, sb, phrase);
+            printNoMatchSearch(fileSet, sb, phrase);
         }
     }
 
-    private void printNoMatchSearch(Set<String> fileSet) {
+    private void printNoMatchSearch(Set<String> fileSet, StringBuilder sb, String phrase) {
         for (String filename : fileMap.keySet()) {
             if (!fileSet.contains(filename)) {
-                System.out.println(filename + " - no match");
+                sb.append(filename).append(" ").append(phrase).append(" - no match");
             }
         }
+        sb.append("Elapsed Time : ").append(threadLocalMsUsed.get()).append("ms");
     }
 
-    private Set<String> printMatchSearch(SearchHits searchHits) {
-        System.out.println("Search Results:");
+    private Set<String> printMatchSearch(SearchHits searchHits, StringBuilder sb, String phrase) {
+        sb.append("Search Results:");
         Set<String> fileSet = new HashSet<>();
         for (SearchHit hit : searchHits) {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
             String filename = (String) sourceAsMap.get("filename");
             fileSet.add(filename);
-            System.out.println(filename + " - matches");
+            sb.append(filename).append(" ").append(phrase).append(" - matches");
         }
         return fileSet;
     }

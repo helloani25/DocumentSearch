@@ -17,12 +17,12 @@ import java.util.stream.Stream;
 import static java.nio.file.StandardOpenOption.READ;
 
 
-class DocumentSearchUtils {
+public class DocumentSearchUtils {
 
     private static Map<String, String> filesMap = new HashMap<>();
     private final static Logger logger = LogManager.getLogger(DocumentSearch.class);
 
-    static Map<String, String> readDirectory(String directory) {
+    public static Map<String, String> readDirectory(String directory) {
         if (filesMap.keySet().size() == 0) {
             iterateAllFilesInDirectory(directory);
         }

@@ -4,24 +4,32 @@ apply plugin: 'application'
 sourceSets {
     main {
         java {
-            srcDirs = ["src"]
+            srcDirs = ["src/main/java"]
         }
         resources {
-            srcDirs = ["resources"]
+            srcDirs = ["src/main/resources"]
         }
     }
 
     test {
         java {
-            srcDirs = ["test"]
+            srcDirs = ["src/test/java"]
         }
         resources {
-            srcDirs  = ["resources"]
+            srcDirs  = ["src/main/resources"]
         }
     }
 }
 
-mainClassName = 'com.target.search.Main'
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'main.java.search.Main'
+        )
+    }
+}
+
+mainClassName = 'main.java.search.Main'
 
 // tag::repositories[]
 repositories {

@@ -18,7 +18,6 @@ public class SearchPerformanceTest {
                 Runnable task = new Runnable() {
                     @Override
                     public void run() {
-                        System.out.println("******  PHRASE - " + phrase);
                         simpleDocumentSearch.getSearchResults(phrase);
                     }
                 };
@@ -39,7 +38,6 @@ public class SearchPerformanceTest {
                 Runnable task = new Runnable() {
                     @Override
                     public void run() {
-                        System.out.println("******  PHRASE - " + phrase);
                         regexDocumentSearch.getSearchResults(phrase);
                     }
                 };
@@ -60,7 +58,6 @@ public class SearchPerformanceTest {
                 Runnable task = new Runnable() {
                     @Override
                     public void run() {
-                        System.out.println("******  PHRASE - " + phrase);
                         indexedDocumentSearch.getSearchResults(phrase);
                     }
                 };

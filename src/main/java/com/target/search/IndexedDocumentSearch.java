@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 public class IndexedDocumentSearch implements DocumentSearch {
 
-    private Map<String, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
+    private Map<String, String> fileMap;
     private final static Logger logger = LogManager.getLogger(IndexedDocumentSearch.class);
     private long timeElapsed = 0;
 

@@ -47,7 +47,7 @@ the adjaceny list of the neighbouring cities from the starting city.
    ```
     gradle clean build
    ```
-2. com.target.search.Main class is com.target.search.Main
+2. Main class is Main
 
 #### Examples of running the code
 File connected.txt is inside the Input directory

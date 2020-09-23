@@ -9,13 +9,13 @@ public class SimpleDocumentSearch implements DocumentSearch {
         fileMapTokenzied = new HashMap<>();
     }
     // Thread local variable containing each thread's ID
-    private final static ThreadLocal<Long> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0L);
+    private final static ThreadLocal<Double> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0.0);
 
     public void setUp() {
         Map<String, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
         long startTime = System.nanoTime();
         tokenizeText(fileMap);
-        threadLocalMsUsed.set(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
+        threadLocalMsUsed.set((System.nanoTime() - startTime)/1000000.0);
     }
 
     public void getSearchResults(String phrase) {
@@ -27,11 +27,11 @@ public class SimpleDocumentSearch implements DocumentSearch {
             list.add(filename);
             treeMap.put(count, list);
         }
-        threadLocalMsUsed.set(threadLocalMsUsed.get() + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
+        threadLocalMsUsed.set((System.nanoTime() - startTime)/1000000.0);
         printSearchResults(treeMap, phrase);
     }
 
-    int findMatch(String[] content, String phrase) {
+    private int findMatch(String[] content, String phrase) {
         phrase = phrase.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?|;)","" );
         String[] tokens = phrase.split("(\\s+|\\-)");
         int j = 0, count = 0;

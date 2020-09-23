@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 public class RegexDocumentSearch implements DocumentSearch {
     Map<String, String> fileMap;
-    private final static ThreadLocal<Long> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0L);
+    private final static ThreadLocal<Double> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0.0);
 
     public void setup() {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
@@ -24,7 +24,7 @@ public class RegexDocumentSearch implements DocumentSearch {
             list.add(filename);
             treeMap.put(count, list);
         }
-        threadLocalMsUsed.set(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
+        threadLocalMsUsed.set((System.nanoTime() - startTime)/1000000.0);
         printSearchResults(treeMap, phrase);
     }
 

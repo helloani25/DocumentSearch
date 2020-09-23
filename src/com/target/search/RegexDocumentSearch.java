@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 public class RegexDocumentSearch implements DocumentSearch {
     Map<String, String> fileMap;
+    private final static ThreadLocal<Long> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0L);
 
     public void setup() {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
@@ -15,7 +16,6 @@ public class RegexDocumentSearch implements DocumentSearch {
 
     @Override
     public void getSearchResults(String phrase) {
-        System.out.println("Search Results:");
         Map<Integer, List<String>> treeMap = new TreeMap<>(Collections.reverseOrder());
         long startTime = System.nanoTime();
         for (String filename:fileMap.keySet()) {
@@ -24,10 +24,8 @@ public class RegexDocumentSearch implements DocumentSearch {
             list.add(filename);
             treeMap.put(count, list);
         }
-        long endTime = System.nanoTime();
-        long msUsed = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-        printSearchResults(treeMap);
-        System.out.println("Elapsed Time : " + msUsed+"ms");
+        threadLocalMsUsed.set(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
+        printSearchResults(treeMap, phrase);
     }
 
     private int findMatch(String content, String phrase) {
@@ -43,15 +41,19 @@ public class RegexDocumentSearch implements DocumentSearch {
         return count;
     }
 
-    private void printSearchResults(Map<Integer, List<String>> treeMap) {
+    private void printSearchResults(Map<Integer, List<String>> treeMap, String phrase) {
+        StringBuffer sb = new StringBuffer();
+        sb.append("Search Results:\n");
         for (int count: treeMap.keySet())
         if (count == 0) {
             for (String filename: treeMap.get(count))
-                System.out.println(filename + " - no match");
+                sb.append(filename).append(" ").append(phrase).append(" - no match\n");
         } else {
             for (String filename: treeMap.get(count))
-                System.out.println(filename + " - matches");
+                sb.append(filename).append(" ").append(phrase).append(" - matches\n");
         }
+        sb.append("Elapsed Time : ").append(threadLocalMsUsed.get()).append("ms\n");
+        System.out.println(sb.toString());
     }
 
 }

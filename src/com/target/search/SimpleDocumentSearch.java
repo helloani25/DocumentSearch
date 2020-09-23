@@ -4,12 +4,12 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class SimpleDocumentSearch implements DocumentSearch {
-    private Map<String, String[]> fileMapTokenzied;
+    private final Map<String, String[]> fileMapTokenzied;
     public SimpleDocumentSearch() {
         fileMapTokenzied = new HashMap<>();
     }
     // Thread local variable containing each thread's ID
-    private final ThreadLocal<Long> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0L);
+    private final static ThreadLocal<Long> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0L);
 
     public void setUp() {
         Map<String, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
@@ -19,8 +19,6 @@ public class SimpleDocumentSearch implements DocumentSearch {
     }
 
     public void getSearchResults(String phrase) {
-        StringBuffer sb = new StringBuffer();
-        sb.append("Search Results:\n");
         long startTime = System.nanoTime();
         TreeMap<Integer, List<String>> treeMap = new TreeMap<>(Collections.reverseOrder());
         for (String filename: fileMapTokenzied.keySet()) {
@@ -30,9 +28,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
             treeMap.put(count, list);
         }
         threadLocalMsUsed.set(threadLocalMsUsed.get() + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
-        sb = printSearchResults(treeMap, phrase, sb);
-        sb.append("Elapsed Time : " + threadLocalMsUsed.get()+"ms\n");
-        System.out.println(sb.toString());
+        printSearchResults(treeMap, phrase);
     }
 
     int findMatch(String[] content, String phrase) {
@@ -64,16 +60,19 @@ public class SimpleDocumentSearch implements DocumentSearch {
         }
     }
 
-    private StringBuffer printSearchResults(Map<Integer, List<String>> treeMap, String phrase, StringBuffer sb) {
+    private void printSearchResults(Map<Integer, List<String>> treeMap, String phrase) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Search Results:\n");
         for (int count: treeMap.keySet())
             if (count == 0) {
                 for (String filename: treeMap.get(count))
-                    sb.append(filename + " " + phrase + " - no match\n");
+                    sb.append(filename).append(" ").append(phrase).append(" - no match\n");
             } else {
                 for (String filename: treeMap.get(count))
-                    sb.append(filename + " " + phrase + " - matches\n");
+                    sb.append(filename).append(" ").append(phrase).append(" - matches\n");
             }
-        return sb;
+        sb.append("Elapsed Time : ").append(threadLocalMsUsed.get()).append("ms\n");
+        System.out.println(sb.toString());
     }
 
 }

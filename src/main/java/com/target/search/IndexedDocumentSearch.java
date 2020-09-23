@@ -177,20 +177,21 @@ public class IndexedDocumentSearch implements DocumentSearch {
     private void printNoMatchSearch(Set<String> fileSet, StringBuilder sb, String phrase) {
         for (String filename : fileMap.keySet()) {
             if (!fileSet.contains(filename)) {
-                sb.append(filename).append(" ").append(phrase).append(" - no match");
+                sb.append(filename).append(" ").append(phrase).append(" - no match\n");
             }
         }
-        sb.append("Elapsed Time : ").append(threadLocalMsUsed.get()).append("ms");
+        sb.append("Elapsed Time : ").append(threadLocalMsUsed.get()).append("ms\n");
+        System.out.println(sb.toString());
     }
 
     private Set<String> printMatchSearch(SearchHits searchHits, StringBuilder sb, String phrase) {
-        sb.append("Search Results:");
+        sb.append("Search Results:\n");
         Set<String> fileSet = new HashSet<>();
         for (SearchHit hit : searchHits) {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
             String filename = (String) sourceAsMap.get("filename");
             fileSet.add(filename);
-            sb.append(filename).append(" ").append(phrase).append(" - matches");
+            sb.append(filename).append(" ").append(phrase).append(" - matches\n");
         }
         return fileSet;
     }

@@ -1,7 +1,6 @@
 package com.target.search;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 public class SimpleDocumentSearch implements DocumentSearch {
     private final Map<String, String[]> fileMapTokenzied;

@@ -42,7 +42,7 @@ public class RegexDocumentSearch implements DocumentSearch {
     }
 
     private void printSearchResults(Map<Integer, List<String>> treeMap, String phrase) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("Search Results:\n");
         for (int count: treeMap.keySet())
         if (count == 0) {

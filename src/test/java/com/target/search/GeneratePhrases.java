@@ -131,7 +131,7 @@ public class GeneratePhrases {
     }
 
     public Set<String> getAllStopwords() throws IOException {
-        List<String> stopwords = Files.readAllLines(Paths.get("resources/english_stopwords.txt"));
+        List<String> stopwords = Files.readAllLines(Paths.get("src/main/resources/english_stopwords.txt"));
         stopwordsRegex = stopwords.stream().collect(Collectors.joining("|", "(?i)\\b(", ")\\b\\s?"));
         Set<String> stopWordsSet = new HashSet<>(stopwords);
         return stopWordsSet;

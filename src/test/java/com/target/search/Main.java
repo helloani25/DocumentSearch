@@ -21,7 +21,7 @@ public class Main {
         //searchPerformanceTest.executeIndexedSearch(indexedDocumentSearch);
 
         try {
-            List<String> phrases = Files.readAllLines(Paths.get("resources/generate_phrases.txt"));
+            List<String> phrases = Files.readAllLines(Paths.get("src/main/resources/generate_phrases.txt"));
             for (String phrase : phrases) {
                 System.out.println("******  phrase - " + phrase);
                 //simpleDocumentSearch.getSearchResults(phrase);

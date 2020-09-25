@@ -24,12 +24,12 @@ sourceSets {
 jar {
     manifest {
         attributes(
-                'Main-Class': 'main.java.search.Main'
+                'Main-Class': 'com.target.search.Main'
         )
     }
 }
 
-mainClassName = 'main.java.search.Main'
+mainClassName = 'com.target.search.Main'
 
 // tag::repositories[]
 repositories {

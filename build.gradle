@@ -58,6 +58,7 @@ configurations {
 }
 
 task runFinalJar(type: JavaExec) {
+    dependsOn customFatJar
     classpath = files('build/libs/all-in-one.jar')
     classpath += sourceSets.main.runtimeClasspath
     main='com.target.search.Main'

@@ -4,19 +4,10 @@ apply plugin: 'application'
 sourceSets {
     main {
         java {
-            srcDirs = ["src/main/java"]
+            srcDirs = ["src/main/java","src/test/java"]
         }
         resources {
             srcDirs = ["src/main/resources"]
-        }
-    }
-
-    test {
-        java {
-            srcDirs = ["src/test/java"]
-        }
-        resources {
-            srcDirs  = ["src/main/resources"]
         }
     }
 }
@@ -52,6 +43,19 @@ task customFatJar(type: Jar) {
     }
 }
 
+task customTestJar(type: Jar) {
+    manifest {
+        attributes(
+                'Main-Class': 'com.target.search.Test'
+        )
+    }
+    baseName = 'test-jar'
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
 configurations {
     // configuration that holds jars to include in the jar
     extraLibs
@@ -62,6 +66,13 @@ task runFinalJar(type: JavaExec) {
     classpath = files('build/libs/all-in-one.jar')
     classpath += sourceSets.main.runtimeClasspath
     main='com.target.search.Main'
+}
+
+task runTestJar(type: JavaExec) {
+    dependsOn customTestJar
+    classpath = files('build/libs/test.jar')
+    classpath += sourceSets.main.runtimeClasspath
+    main='com.target.search.Test'
 }
 
 sourceCompatibility = 1.11

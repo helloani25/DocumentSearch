@@ -38,11 +38,11 @@ public class GeneratePhrases {
     }
 
 
-    private void generateWords() throws IOException {
+    private void generateWords() {
         for (String filename : fileMap.keySet()) {
             String[] words = fileMap.get(filename).split("\\s+");
             for (int i = 0; i < words.length; i++) {
-                words[i] = words[i].strip();
+                words[i] = words[i].replaceAll("\\s+"," ");
                 words[i] = words[i].replaceAll("\\[\\d\\]", "");
                 words[i] = words[i].replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?|;)", "");
                 targetSet.add(words[i]);
@@ -53,12 +53,7 @@ public class GeneratePhrases {
                 targetSet.add(words[i]);
             }
 
-            for (Iterator<String> i = targetSet.iterator(); i.hasNext(); ) {
-                String word = i.next();
-                if (stopWordSet.contains(word.toLowerCase()) || word.strip().length() == 0 || word.strip().equals("-")) {
-                    i.remove();
-                }
-            }
+            targetSet.removeIf(word -> stopWordSet.contains(word.toLowerCase()) || word.strip().length() == 0 || word.strip().equals("-"));
             writeToFile();
         }
     }
@@ -67,6 +62,7 @@ public class GeneratePhrases {
         for (String filename : fileMap.keySet()) {
             String[] sentences = fileMap.get(filename).split("\\.");
             for (int i = 0; i < sentences.length; i++) {
+                sentences[i] = sentences[i].replaceAll("\\s+", " ");
                 sentences[i] = sentences[i].replaceAll("\\[\\d\\]", "");
                 sentences[i] = sentences[i].replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?|;)", "");
                 sentences[i] = sentences[i].strip();
@@ -83,7 +79,7 @@ public class GeneratePhrases {
     }
 
     public List<String> ngrams(int n, String str) {
-        List<String> ngrams = new ArrayList<String>();
+        List<String> ngrams = new ArrayList<>();
         String[] words = str.split(" ");
         for (int i = 0; i < words.length - n + 1; i++) {
             String phrase = concat(words, i, i + n);
@@ -99,13 +95,13 @@ public class GeneratePhrases {
     public String concat(String[] words, int start, int end) {
         StringBuilder sb = new StringBuilder();
         for (int i = start; i < end; i++)
-            sb.append((i > start ? " " : "") + words[i]);
+            sb.append(i > start ? " " : "").append(words[i]);
         return sb.toString();
     }
 
     private void writeToFile() {
         // Create the set of options for appending to the file.
-        Set<OpenOption> options = new HashSet<OpenOption>();
+        Set<OpenOption> options = new HashSet<>();
         options.add(APPEND);
         options.add(CREATE);
         // Create the custom permissions attribute.
@@ -115,7 +111,7 @@ public class GeneratePhrases {
                 PosixFilePermissions.asFileAttribute(perms);
 
 
-        Path file = Paths.get("resources/generate_phrases.txt");
+        Path file = Paths.get(Constants.PHRASE_FIILE);
 
         try (SeekableByteChannel sbc =
                      Files.newByteChannel(file, options, attr)) {
@@ -131,10 +127,9 @@ public class GeneratePhrases {
     }
 
     public Set<String> getAllStopwords() throws IOException {
-        List<String> stopwords = Files.readAllLines(Paths.get("src/main/resources/english_stopwords.txt"));
+        List<String> stopwords = Files.readAllLines(Paths.get(Constants.STOPWORDS_FILE));
         stopwordsRegex = stopwords.stream().collect(Collectors.joining("|", "(?i)\\b(", ")\\b\\s?"));
-        Set<String> stopWordsSet = new HashSet<>(stopwords);
-        return stopWordsSet;
+        return new HashSet<>(stopwords);
     }
 
 }

@@ -11,16 +11,11 @@ public class SearchPerformanceTest {
 
     public void executeSimpleSearch(SimpleDocumentSearch simpleDocumentSearch) {
 
-        ExecutorService executor = Executors.newFixedThreadPool(6);
+        ExecutorService executor = Executors.newFixedThreadPool(4);
         try {
-            List<String> phrases = Files.readAllLines(Paths.get("src/main/resources/generate_phrases.txt"));
+            List<String> phrases = Files.readAllLines(Paths.get(Constants.PHRASE_FIILE));
             for (String phrase : phrases) {
-                Runnable task = new Runnable() {
-                    @Override
-                    public void run() {
-                        simpleDocumentSearch.getSearchResults(phrase);
-                    }
-                };
+                Runnable task = () -> simpleDocumentSearch.getSearchResults(phrase);
                 executor.execute(task);
             }
         } catch (IOException e) {
@@ -31,16 +26,11 @@ public class SearchPerformanceTest {
 
     public void executeRegexSearch(RegexDocumentSearch regexDocumentSearch) {
 
-        ExecutorService executor = Executors.newFixedThreadPool(6);
+        ExecutorService executor = Executors.newFixedThreadPool(4);
         try {
-            List<String> phrases = Files.readAllLines(Paths.get("src/main/resources/generate_phrases.txt"));
+            List<String> phrases = Files.readAllLines(Paths.get(Constants.PHRASE_FIILE));
             for (String phrase : phrases) {
-                Runnable task = new Runnable() {
-                    @Override
-                    public void run() {
-                        regexDocumentSearch.getSearchResults(phrase);
-                    }
-                };
+                Runnable task = () -> regexDocumentSearch.getSearchResults(phrase);
                 executor.execute(task);
             }
         } catch (IOException e) {
@@ -51,16 +41,11 @@ public class SearchPerformanceTest {
 
     public void executeIndexedSearch(IndexedDocumentSearch indexedDocumentSearch) {
 
-        ExecutorService executor = Executors.newFixedThreadPool(6);
+        ExecutorService executor = Executors.newFixedThreadPool(4);
         try {
-            List<String> phrases = Files.readAllLines(Paths.get("src/main/resources/generate_phrases.txt"));
+            List<String> phrases = Files.readAllLines(Paths.get(Constants.PHRASE_FIILE));
             for (String phrase : phrases) {
-                Runnable task = new Runnable() {
-                    @Override
-                    public void run() {
-                        indexedDocumentSearch.getSearchResults(phrase);
-                    }
-                };
+                Runnable task = () -> indexedDocumentSearch.getSearchResults(phrase);
                 executor.execute(task);
             }
         } catch (IOException e) {

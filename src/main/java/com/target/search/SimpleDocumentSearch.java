@@ -1,6 +1,7 @@
 package com.target.search;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class SimpleDocumentSearch implements DocumentSearch {
     private final Map<String, String[]> fileMapTokenzied;
@@ -8,13 +9,12 @@ public class SimpleDocumentSearch implements DocumentSearch {
         fileMapTokenzied = new HashMap<>();
     }
     // Thread local variable containing each thread's ID
-    private final static ThreadLocal<Double> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0.0);
 
     public void setUp() {
         Map<String, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
         long startTime = System.nanoTime();
         tokenizeText(fileMap);
-        double timeElapsed = (System.nanoTime() - startTime)/1000000.0;
+        double timeElapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
     }
 
     public void getSearchResults(String phrase) {
@@ -26,8 +26,8 @@ public class SimpleDocumentSearch implements DocumentSearch {
             list.add(filename);
             treeMap.put(count, list);
         }
-        threadLocalMsUsed.set((System.nanoTime() - startTime)/1000000.0);
-        printSearchResults(treeMap, phrase);
+        double msUsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+        printSearchResults(treeMap, phrase, msUsed);
     }
 
     private int findMatch(String[] content, String phrase) {
@@ -59,7 +59,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
         }
     }
 
-    private void printSearchResults(Map<Integer, List<String>> treeMap, String phrase) {
+    private void printSearchResults(Map<Integer, List<String>> treeMap, String phrase, double msUsed) {
         StringBuilder sb = new StringBuilder();
         sb.append("Search Results:\n");
         for (int count: treeMap.keySet())
@@ -70,7 +70,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
                 for (String filename: treeMap.get(count))
                     sb.append(filename).append(" ").append(phrase).append(" - matches\n");
             }
-        sb.append("Elapsed Time : ").append(threadLocalMsUsed.get()).append("ms\n");
+        sb.append("Elapsed Time : ").append(msUsed).append("ms\n");
         System.out.println(sb.toString());
     }
 

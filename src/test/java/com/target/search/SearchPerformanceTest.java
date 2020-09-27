@@ -10,8 +10,8 @@ import java.util.concurrent.Executors;
 public class SearchPerformanceTest {
 
     public void executeSimpleSearch(SimpleDocumentSearch simpleDocumentSearch) {
-
-        ExecutorService executor = Executors.newFixedThreadPool(4);
+        System.out.println("Simple Search");
+        ExecutorService executor = Executors.newFixedThreadPool(6);
         try {
             List<String> phrases = Files.readAllLines(Paths.get(Constants.PHRASE_FIILE));
             for (String phrase : phrases) {
@@ -25,8 +25,8 @@ public class SearchPerformanceTest {
     }
 
     public void executeRegexSearch(RegexDocumentSearch regexDocumentSearch) {
-
-        ExecutorService executor = Executors.newFixedThreadPool(4);
+        System.out.println("Regex Search");
+        ExecutorService executor = Executors.newFixedThreadPool(6);
         try {
             List<String> phrases = Files.readAllLines(Paths.get(Constants.PHRASE_FIILE));
             for (String phrase : phrases) {
@@ -40,8 +40,8 @@ public class SearchPerformanceTest {
     }
 
     public void executeIndexedSearch(IndexedDocumentSearch indexedDocumentSearch) {
-
-        ExecutorService executor = Executors.newFixedThreadPool(4);
+        System.out.println("Indexed Search");
+        ExecutorService executor = Executors.newFixedThreadPool(6);
         try {
             List<String> phrases = Files.readAllLines(Paths.get(Constants.PHRASE_FIILE));
             for (String phrase : phrases) {

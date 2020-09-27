@@ -28,12 +28,15 @@ public class GeneratePhrases {
     }
 
     public void generateRandomPhrases() {
-        try {
-            stopWordSet = getAllStopwords();
-            generateWords();
-            generateText();
-        } catch (IOException e) {
-            e.printStackTrace();
+        Path file = Paths.get(Constants.PHRASE_FIILE);
+        if(Files.notExists(file) || !Files.isReadable(file)) {
+            try {
+                stopWordSet = getAllStopwords();
+                generateWords();
+                generateText();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

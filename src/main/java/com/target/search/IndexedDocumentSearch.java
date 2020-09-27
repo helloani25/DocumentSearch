@@ -153,7 +153,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
         String[] includeFields = new String[]{"filename"};
         String[] excludeFields = new String[]{"content"};
         searchSourceBuilder.fetchSource(includeFields, excludeFields);
-        searchSourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
+        searchSourceBuilder.timeout(new TimeValue(30, TimeUnit.SECONDS));
         searchRequest.source(searchSourceBuilder);
 
         return searchRequest;

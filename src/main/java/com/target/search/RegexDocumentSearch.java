@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 
 public class RegexDocumentSearch implements DocumentSearch {
     Map<String, String> fileMap;
-    private final static ThreadLocal<Double> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0.0);
 
     public void setup() {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
@@ -23,8 +22,8 @@ public class RegexDocumentSearch implements DocumentSearch {
             list.add(filename);
             treeMap.put(count, list);
         }
-        threadLocalMsUsed.set((System.nanoTime() - startTime)/1000000.0);
-        printSearchResults(treeMap, phrase);
+        double msUsed = (System.nanoTime() - startTime)/1000000.0;
+        printSearchResults(treeMap, phrase, msUsed);
     }
 
     private int findMatch(String content, String phrase) {
@@ -40,7 +39,7 @@ public class RegexDocumentSearch implements DocumentSearch {
         return count;
     }
 
-    private void printSearchResults(Map<Integer, List<String>> treeMap, String phrase) {
+    private void printSearchResults(Map<Integer, List<String>> treeMap, String phrase, double msUsed) {
         StringBuilder sb = new StringBuilder();
         sb.append("Search Results:\n");
         for (int count: treeMap.keySet())
@@ -51,7 +50,7 @@ public class RegexDocumentSearch implements DocumentSearch {
             for (String filename: treeMap.get(count))
                 sb.append(filename).append(" ").append(phrase).append(" - matches\n");
         }
-        sb.append("Elapsed Time : ").append(threadLocalMsUsed.get()).append("ms\n");
+        sb.append("Elapsed Time : ").append(msUsed).append("ms\n");
         System.out.println(sb.toString());
     }
 

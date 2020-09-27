@@ -64,7 +64,7 @@ public class GeneratePhrases {
             for (int i = 0; i < sentences.length; i++) {
                 sentences[i] = sentences[i].replaceAll("\\s+", " ");
                 sentences[i] = sentences[i].replaceAll("\\[\\d\\]", "");
-                sentences[i] = sentences[i].replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?|;)", "");
+                sentences[i] = sentences[i].replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\:|\\?|;)", "");
                 sentences[i] = sentences[i].strip();
                 if (sentences[i].strip().length() == 0) {
                     continue;

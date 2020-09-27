@@ -11,7 +11,7 @@ public class SearchPerformanceTest {
 
     public void executeSimpleSearch(SimpleDocumentSearch simpleDocumentSearch) {
         System.out.println("Simple Search");
-        ExecutorService executor = Executors.newFixedThreadPool(6);
+        ExecutorService executor = Executors.newFixedThreadPool(Constants.CONCURRENCY_LEVEL);
         try {
             List<String> phrases = Files.readAllLines(Paths.get(Constants.PHRASE_FIILE));
             for (String phrase : phrases) {
@@ -26,7 +26,7 @@ public class SearchPerformanceTest {
 
     public void executeRegexSearch(RegexDocumentSearch regexDocumentSearch) {
         System.out.println("Regex Search");
-        ExecutorService executor = Executors.newFixedThreadPool(6);
+        ExecutorService executor = Executors.newFixedThreadPool(Constants.CONCURRENCY_LEVEL);
         try {
             List<String> phrases = Files.readAllLines(Paths.get(Constants.PHRASE_FIILE));
             for (String phrase : phrases) {
@@ -41,7 +41,7 @@ public class SearchPerformanceTest {
 
     public void executeIndexedSearch(IndexedDocumentSearch indexedDocumentSearch) {
         System.out.println("Indexed Search");
-        ExecutorService executor = Executors.newFixedThreadPool(6);
+        ExecutorService executor = Executors.newFixedThreadPool(Constants.CONCURRENCY_LEVEL);
         try {
             List<String> phrases = Files.readAllLines(Paths.get(Constants.PHRASE_FIILE));
             for (String phrase : phrases) {

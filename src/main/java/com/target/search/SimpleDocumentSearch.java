@@ -26,7 +26,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
             list.add(filename);
             treeMap.put(count, list);
         }
-        double msUsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+        long msUsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
         printSearchResults(treeMap, phrase, msUsed);
     }
 
@@ -59,7 +59,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
         }
     }
 
-    private void printSearchResults(Map<Integer, List<String>> treeMap, String phrase, double msUsed) {
+    private void printSearchResults(Map<Integer, List<String>> treeMap, String phrase, long msUsed) {
         StringBuilder sb = new StringBuilder();
         sb.append("Search Results:\n");
         for (int count: treeMap.keySet())

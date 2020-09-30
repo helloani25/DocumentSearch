@@ -1,5 +1,6 @@
 package com.target.search;
 
-interface DocumentSearch {
-    void getSearchResults(String phrase);
+public interface DocumentSearch {
+    PerformanceSearchResult getSearchResults(String phrase);
+    void setup();
 }

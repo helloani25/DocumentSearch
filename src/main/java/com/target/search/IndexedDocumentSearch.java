@@ -35,32 +35,36 @@ public class IndexedDocumentSearch implements DocumentSearch {
     private Map<String, String> fileMap;
     private final static Logger logger = LogManager.getLogger(IndexedDocumentSearch.class);
     private long timeElapsed = 0;
-    private final static ThreadLocal<Long> threadLocalMsUsed = ThreadLocal.withInitial(() -> 0L);
 
-    public void setup() throws IOException {
+    @Override
+    public void setup() {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
         try (RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http"))
                 .setRequestConfigCallback(
-                        requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(5000).setSocketTimeout(60000)))) {
+                        requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(5000).setSocketTimeout(60000).setConnectionRequestTimeout(0)))) {
             // do something with the client
             // client gets closed automatically
             if (!checkIfIndexExists(client)) {
                 createIndex(client);
                 indexFiles(client);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void getSearchResults(String phrase) {
+    public PerformanceSearchResult getSearchResults(String phrase) {
         try (RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http"))
                 .setRequestConfigCallback(
-                        requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(5000).setSocketTimeout(60000)))) {
-            executeSearchRequest(client, phrase);
+                        requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(5000).setSocketTimeout(360000).setConnectionRequestTimeout(0)))) {
+            PerformanceSearchResult performanceSearchResult = executeSearchRequest(client, phrase);
+            return  performanceSearchResult;
 
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
+        return null;
     }
 
     private void createIndex(RestHighLevelClient client) throws IOException {
@@ -68,6 +72,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
         createIndexRequest.settings(Settings.builder()
                 .put("index.number_of_shards", 1)
                 .put("index.number_of_replicas", 0)
+                .put("index.requests.cache.enable",true)
         );
         createIndexRequest.waitForActiveShards();
         createIndexRequest.mapping(getIndexMapping());
@@ -159,39 +164,43 @@ public class IndexedDocumentSearch implements DocumentSearch {
         return searchRequest;
     }
 
-    private void  executeSearchRequest(RestHighLevelClient client, String phrase) throws IOException {
+    private PerformanceSearchResult executeSearchRequest(RestHighLevelClient client, String phrase) {
         SearchRequest searchRequest = buildSearchRequest(phrase);
         SearchResponse searchResponse;
-
-        searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
-
-        if (searchResponse.status() == RestStatus.OK) {
-            threadLocalMsUsed.set(searchResponse.getTook().getMillis());
-            SearchHits searchHits = searchResponse.getHits();
-            StringBuilder sb = new StringBuilder();
-            Set<String> fileSet = printMatchSearch(searchHits, sb, phrase);
-            printNoMatchSearch(fileSet, sb, phrase);
+        long timeUsed = 0;
+        try {
+            searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+            timeUsed = searchResponse.getTook().getMillis();
+            if (searchResponse.status() == RestStatus.OK) {
+                SearchHits searchHits = searchResponse.getHits();
+                StringBuilder sb = new StringBuilder();
+                Set<String> fileSet = printMatchSearch(searchHits, sb);
+                printNoMatchSearch(fileSet, sb, timeUsed);
+            }
+            return new PerformanceSearchResult(searchResponse.status().getStatus(), timeUsed);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private void printNoMatchSearch(Set<String> fileSet, StringBuilder sb, String phrase) {
+    private void printNoMatchSearch(Set<String> fileSet, StringBuilder sb, long timeUsed) {
         for (String filename : fileMap.keySet()) {
             if (!fileSet.contains(filename)) {
-                sb.append(filename).append(" ").append(phrase).append(" - no match\n");
+                sb.append(filename).append(" ").append(" - no match\n");
             }
         }
-        sb.append("Elapsed Time : ").append(threadLocalMsUsed.get()).append("ms\n");
+        sb.append("Elapsed Time : ").append(timeUsed).append("ms\n");
         System.out.println(sb.toString());
     }
 
-    private Set<String> printMatchSearch(SearchHits searchHits, StringBuilder sb, String phrase) {
+    private Set<String> printMatchSearch(SearchHits searchHits, StringBuilder sb) {
         sb.append("Search Results:\n");
         Set<String> fileSet = new HashSet<>();
         for (SearchHit hit : searchHits) {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
             String filename = (String) sourceAsMap.get("filename");
             fileSet.add(filename);
-            sb.append(filename).append(" ").append(phrase).append(" - matches\n");
+            sb.append(filename).append(" ").append(" - matches\n");
         }
         return fileSet;
     }

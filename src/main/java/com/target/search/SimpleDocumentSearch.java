@@ -10,14 +10,16 @@ public class SimpleDocumentSearch implements DocumentSearch {
     }
     // Thread local variable containing each thread's ID
 
-    public void setUp() {
+    @Override
+    public void setup() {
         Map<String, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
         long startTime = System.nanoTime();
         tokenizeText(fileMap);
         double timeElapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
     }
 
-    public void getSearchResults(String phrase) {
+    @Override
+    public PerformanceSearchResult getSearchResults(String phrase) {
         long startTime = System.nanoTime();
         TreeMap<Integer, List<String>> treeMap = new TreeMap<>(Collections.reverseOrder());
         for (String filename: fileMapTokenzied.keySet()) {
@@ -27,7 +29,8 @@ public class SimpleDocumentSearch implements DocumentSearch {
             treeMap.put(count, list);
         }
         long msUsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-        printSearchResults(treeMap, phrase, msUsed);
+        printSearchResults(treeMap, msUsed);
+        return new PerformanceSearchResult(msUsed);
     }
 
     private int findMatch(String[] content, String phrase) {
@@ -59,16 +62,16 @@ public class SimpleDocumentSearch implements DocumentSearch {
         }
     }
 
-    private void printSearchResults(Map<Integer, List<String>> treeMap, String phrase, long msUsed) {
+    private void printSearchResults(Map<Integer, List<String>> treeMap, long msUsed) {
         StringBuilder sb = new StringBuilder();
         sb.append("Search Results:\n");
         for (int count: treeMap.keySet())
             if (count == 0) {
                 for (String filename: treeMap.get(count))
-                    sb.append(filename).append(" ").append(phrase).append(" - no match\n");
+                    sb.append(filename).append(" ").append(" - no match\n");
             } else {
                 for (String filename: treeMap.get(count))
-                    sb.append(filename).append(" ").append(phrase).append(" - matches\n");
+                    sb.append(filename).append(" ").append(" - matches\n");
             }
         sb.append("Elapsed Time : ").append(msUsed).append("ms\n");
         System.out.println(sb.toString());

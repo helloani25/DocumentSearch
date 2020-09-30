@@ -1,6 +1,5 @@
 package com.target.search;
 
-import java.io.IOException;
 import java.util.Scanner;
 
 public class Main {
@@ -11,28 +10,25 @@ public class Main {
         String phrase = scanner.nextLine();
         System.out.println("1) String Match   2) Regular Expression    3) Indexed");
         String searchMethod = scanner.nextLine();
+        DocumentSearch documentSearch;
         switch (searchMethod) {
             case "1":
             case "String Match":
-                SimpleDocumentSearch simpleDocumentSearch = new SimpleDocumentSearch();
-                simpleDocumentSearch.setUp();
-                simpleDocumentSearch.getSearchResults(phrase);
+                documentSearch = new SimpleDocumentSearch();
+                documentSearch.setup();
+                documentSearch.getSearchResults(phrase);
                 break;
             case "2":
             case "Regular Expression":
-                RegexDocumentSearch regexDocumentSearch = new RegexDocumentSearch();
-                regexDocumentSearch.setup();
-                regexDocumentSearch.getSearchResults(phrase);
+                documentSearch = new RegexDocumentSearch();
+                documentSearch.setup();
+                documentSearch.getSearchResults(phrase);
                 break;
             case "3":
             case "Indexed":
-                IndexedDocumentSearch indexedDocumentSearch = new IndexedDocumentSearch();
-                try {
-                    indexedDocumentSearch.setup();
-                    indexedDocumentSearch.getSearchResults(phrase);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                documentSearch = new IndexedDocumentSearch();
+                documentSearch.setup();
+                documentSearch.getSearchResults(phrase);
                 break;
             default:
                 System.out.println("Invalid Entry");

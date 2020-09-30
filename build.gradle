@@ -44,7 +44,7 @@ task runMainJar(type: JavaExec) {
     classpath += sourceSets.main.runtimeClasspath
     main='com.target.search.Main'
     standardInput=System.in
-    //jvmArgs = ['-Xms1024m', '-Xmx2048m']
+    jvmArgs = ['-Xms128m', '-Xmx128m']
 }
 
 task runTestJar(type: JavaExec) {
@@ -52,7 +52,7 @@ task runTestJar(type: JavaExec) {
     classpath = files('build/libs/DocumentSearch.jar')
     classpath += sourceSets.main.runtimeClasspath
     main='com.target.search.Test'
-    //jvmArgs = ['-Xms1024m', '-Xmx2048m']
+    jvmArgs = ['-Xms2048m', '-Xmx2048m']
 }
 
 sourceCompatibility = 1.11

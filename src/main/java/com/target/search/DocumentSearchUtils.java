@@ -20,7 +20,7 @@ import static java.nio.file.StandardOpenOption.READ;
 public class DocumentSearchUtils {
 
     private static Map<String, String> filesMap = new HashMap<>();
-    private final static Logger logger = LogManager.getLogger(DocumentSearch.class);
+    private final static Logger logger = LogManager.getLogger(DocumentSearchUtils.class);
 
     public static Map<String, String> readDirectory(String directory) {
         if (filesMap.keySet().size() == 0) {

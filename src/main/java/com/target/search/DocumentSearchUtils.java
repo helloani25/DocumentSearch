@@ -16,12 +16,20 @@ import java.util.Map;
 import java.util.stream.Stream;
 import static java.nio.file.StandardOpenOption.READ;
 
-
+/**
+ * Reads all the files from the sample_txt directory and writes to fileMap where the key is the filename
+ * and the value is the content of the file
+ */
 public class DocumentSearchUtils {
 
     private static final Map<String, String> filesMap = new HashMap<>();
     private final static Logger logger = LogManager.getLogger(DocumentSearchUtils.class);
 
+    /**
+     *
+     * @param directory sample_txt directory where the files reside
+     * @return map of filename as key and content as value
+     */
     public static Map<String, String> readDirectory(String directory) {
         if (filesMap.keySet().size() == 0) {
             iterateAllFilesInDirectory(directory);
@@ -29,6 +37,10 @@ public class DocumentSearchUtils {
         return filesMap;
     }
 
+    /**
+     * Iterate all files in the directory and read the contents and write to filemap
+     * @param directory sample_txt directory where the files to be tokenized and searched reside
+     */
     private static void iterateAllFilesInDirectory(String directory) {
         try (Stream<Path> paths = Files.walk(Paths.get(directory))) {
             paths.filter(Files::isRegularFile).forEach(file -> {
@@ -41,6 +53,11 @@ public class DocumentSearchUtils {
         }
     }
 
+    /**
+     * Read the Files by Using channel I/O into the buffer based on the allocated size
+     * @param file sample file to be tokenized/indexed and searched
+     * @return content of the file
+     */
     private static String readFile(Path file) {
         // Defaults to READ
         try (SeekableByteChannel sbc = Files.newByteChannel(file, EnumSet.of(READ))) {

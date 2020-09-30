@@ -3,6 +3,10 @@ package com.target.search;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Searches in all the files by preprocessing the text in words and saving it to an array for each file
+ * Faster than regex because we don't match character by character.
+ */
 public class SimpleDocumentSearch implements DocumentSearch {
     private final Map<String, String[]> fileMapTokenzied;
     public SimpleDocumentSearch() {
@@ -10,6 +14,10 @@ public class SimpleDocumentSearch implements DocumentSearch {
     }
     private long timeElapsed;
 
+    /**
+     * Get all the files and the contents in a map and then tokenize all the words and place in an array
+     * The fileMapTokenized holds the filename as key and the array words in sequence as values
+     */
     @Override
     public void setup() {
         Map<String, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
@@ -18,11 +26,20 @@ public class SimpleDocumentSearch implements DocumentSearch {
         timeElapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
     }
 
+    /**
+     * Total time taken to break down the sentences into words
+     * @return Time taken to tokenize the words
+     */
     @Override
     public long getPreprocessTimeElapsed() {
         return timeElapsed;
     }
 
+    /**
+     * Get the total time token for the search and order the search based on occurrence and frequency
+     * @param phrase term or phrase to be searched
+     * @return Time taken to search
+     */
     @Override
     public PerformanceSearchResult getSearchResults(String phrase) {
         long startTime = System.nanoTime();

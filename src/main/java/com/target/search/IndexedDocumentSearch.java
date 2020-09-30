@@ -30,12 +30,22 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Indexed search uses Elasticsearch to create an index named 'target' and all the files are written
+ * to the content field. filename field is added a well. Using match phrase to search a keyword or a phrase
+ */
 public class IndexedDocumentSearch implements DocumentSearch {
 
     private Map<String, String> fileMap;
     private final static Logger logger = LogManager.getLogger(IndexedDocumentSearch.class);
     private long timeElapsed = 0;
 
+    /**
+     * Read all the files from the sample_text.txt and is placed in the fileMap.
+     * Index target is created and mappings are created for the fields filename and content
+     * Files are indexed in bulk and refreshed to create the lucene segments by refreshing the
+     * index
+     */
     @Override
     public void setup() {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
@@ -53,11 +63,21 @@ public class IndexedDocumentSearch implements DocumentSearch {
         }
     }
 
+    /**
+     * The total time taken to create the index target and it's mappings, ingest the documents
+     * and refresh the index
+     * @return Returns the total time taken for creating the index, bulk ingestion and refreshing the index
+     */
     @Override
     public long getPreprocessTimeElapsed() {
         return timeElapsed;
     }
 
+    /**
+     * Search the phrase or keyword/term in the index target using Elasticsearch
+     * @param phrase
+     * @return Returns if the search was successful and the time elapsed
+     */
     @Override
     public PerformanceSearchResult getSearchResults(String phrase) {
         try (RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http"))
@@ -71,6 +91,11 @@ public class IndexedDocumentSearch implements DocumentSearch {
         return null;
     }
 
+    /**
+     * Create the index target and add the mappings
+     * @param client Restclient used to connect to the Elasticsearch cluster. In our case only one node
+     * @throws IOException Throws an exception if the index cannot be created
+     */
     private void createIndex(RestHighLevelClient client) throws IOException {
         CreateIndexRequest createIndexRequest = new CreateIndexRequest("target");
         createIndexRequest.settings(Settings.builder()
@@ -87,6 +112,13 @@ public class IndexedDocumentSearch implements DocumentSearch {
             throw new RuntimeException("Index target was not created");
     }
 
+    /**
+     * Create the mappings for the fields filename and the text. The filename need not be analyzed.
+     * So its keyword type. The content of the file has to be analyzed. So the type is text
+     * Disable doc_values for the keyword since we don' need aggregation. Text type do not have
+     * aggregation by default.
+     * @return mapping object to used in creating the index
+     */
     private Map<String, Object> getIndexMapping() {
         Map<String, Object> jsonMap = new HashMap<>();
         Map<String, Object> content = new HashMap<>();
@@ -102,6 +134,12 @@ public class IndexedDocumentSearch implements DocumentSearch {
         return jsonMap;
     }
 
+    /**
+     * Check if the index already exists before trying to index the files
+     * @param client Restclient to connect to the Elasticsearch cluster
+     * @return true of false to notify if the index was created
+     * @throws IOException Exception if the HTTP call to check index exists fails
+     */
     private boolean checkIfIndexExists(RestHighLevelClient client) throws IOException {
         GetIndexRequest request = new GetIndexRequest("target");
         request.local(false);
@@ -111,6 +149,11 @@ public class IndexedDocumentSearch implements DocumentSearch {
         return client.indices().exists(request, RequestOptions.DEFAULT);
     }
 
+    /**
+     * Index all the files in the sample_text.txt
+     * @param client Restclient used to connect to the elasticsearch cluster
+     * @throws IOException Exception thrown if the indexing fails
+     */
     private void indexFiles(RestHighLevelClient client) throws IOException {
         int id = 0;
         BulkRequest request = new BulkRequest();
@@ -143,6 +186,11 @@ public class IndexedDocumentSearch implements DocumentSearch {
         refreshBeforeSearch(client);
     }
 
+    /**
+     * Refresh the index to make it avaialable for search. This will create the lucene segements
+     * if it does not exist in memory
+     * @param client Restclient to connect to the elasticsearch cluster/single node in our case
+     */
     private void refreshBeforeSearch(RestHighLevelClient client) {
         try {
             long startTime = System.nanoTime();
@@ -155,6 +203,11 @@ public class IndexedDocumentSearch implements DocumentSearch {
         }
     }
 
+    /**
+     * Build the search query for elasticsearch
+     * @param phrase Match with the term or the phrase
+     * @return Returns search request object
+     */
     private SearchRequest buildSearchRequest(String phrase) {
         SearchRequest searchRequest = new SearchRequest("target");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();

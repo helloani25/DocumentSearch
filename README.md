@@ -41,8 +41,12 @@ cd elasticsearch-7.9.2
 In Unix
 ```
 vi /etc/security/limits.conf
-* soft nofile 65536
-* hard nofile 65536
+* soft    nofile      65536
+* hard    nofile      65536
+* soft    nproc        4096
+* hard    nproc        4096
+*   -     fsize       unlimited
+*   -        as       unlimited
 ```
 In Mac OS
 ```
@@ -100,43 +104,25 @@ Indexed Search
 4. Setup Certificate-Based Mutual Authentication to between the services (Elasticsearch and the Application)
 5. Load balance the cluster 
 6. Setup loggers like syslog or journald and setup watcher to monitor logs.
-7. Setup Prometheus to send metrics from CPU, RAM, Disk and network.  I would also setup health checks for the elasticsearch cluster
+7. Setup Prometheus to send metrics from CPU, RAM, Disk and network.  I would also setup health checks for the      elasticsearch cluster
 8. Add clusters in multiple regions and setup cross cluster replication.
 9. Setup circuit breakers available in elasticsearch to prevent OutOfMemory exceptions
-10. 
-
-#####
-
-zip file containing all necessary build steps and dependencies
-
-Provide a README.md file with instructions for testing, running and interacting with your application and any details 
-you feel are relevant to share
-
-Recommendations to make your solution suitable for use in a production environment 
-
-Functional implementation of the problem with associated tests
-
-Run a performance test that does 2M searches with random search terms, and measures execution time. Which approach is fastest? Why?
-
-Provide some thoughts on what you would do on the software or hardware side to make this program scale to handle massive content and/or 
-very large request volume (5000 requests/second or more).
-
-use Kafka or Logstash with dead letter queue to ingest the files into Elasticsearch 
-
-log4j
-
-logging drivers - syslog or journald log to look for performance issues and trigger alerts.
-
-
-
-
-
-set filename index to false
-
-searchAfter for large number of documents to paginate
-
-production username and password with TLS
-
+10. Enable caching of queries where applicable. If we are expecting more searches than writes, we should allocate   enough RAM cache
+    <b> Types of cache:</b>
+    1. Node query cache for filtered results of term query
+    2. Shard cache for storing results for local searches
+11. Configure keep-alive TCP settings transport.ping_schedule to less than timeout. Test and set it.
+12. Setup thread pool configuration for search, write, merge and refresh and fetch shards operations. This is can be setup based on the configuration of hardware and testing with large data set.
+13. OS will retransmit any lost messages a number of times before informing the sender of any problem.  Retransmissions back off exponentially. So reduce the retries
+    ```
+        sysctl -w net.ipv4.tcp_retries2=5
+     ```
+ 14. Requesting the JVM to lock the heap in memory through mlockall to avoid swapping pages to the disk
+ 15. Increase the nproc since elasticsearch run many threads. At the minimum you need 4096 as limit for the number of processes. 
+ 16. Increase the number of file descriptors.
+ 17. Increase the file size to unlimited to allow large transaction logs.
+ 18. sysctl -w vm.max_map_count=262144
+ 19. Increase the addressable space to allow memory mapped files. Elasticsearch uses it address space quickly and improve performance.  This keeps the index data off the JVM heap but in memory for blazing fast access.
 
 
 ```

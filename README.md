@@ -108,7 +108,7 @@ Indexed Search
 8. Add clusters in multiple regions and setup cross cluster replication.
 9. Setup circuit breakers available in elasticsearch to prevent OutOfMemory exceptions
 10. Enable caching of queries where applicable. If we are expecting more searches than writes, we should allocate   enough RAM cache
-    <b> Types of cache:</b>
+    ###### Types of cache:
     1. Node query cache for filtered results of term query
     2. Shard cache for storing results for local searches
 11. Configure keep-alive TCP settings transport.ping_schedule to less than timeout. Test and set it.

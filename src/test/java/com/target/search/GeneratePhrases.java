@@ -17,8 +17,8 @@ import static java.nio.file.StandardOpenOption.*;
 
 public class GeneratePhrases {
 
-    private Map<String, String> fileMap;
-    private Set<String> targetSet;
+    private final Map<String, String> fileMap;
+    private final Set<String> targetSet;
     private Set<String> stopWordSet;
     private String stopwordsRegex;
 
@@ -75,7 +75,7 @@ public class GeneratePhrases {
                 for (int n = 2; n <= 5; n++) {
                     targetSet.addAll(ngrams(n, sentences[i]));
                 }
-                targetSet.addAll(Arrays.asList(sentences[i]));
+                targetSet.add(sentences[i]);
             }
             writeToFile();
         }

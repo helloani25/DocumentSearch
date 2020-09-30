@@ -15,6 +15,11 @@ public class RegexDocumentSearch implements DocumentSearch {
     }
 
     @Override
+    public long getPreprocessTimeElapsed() {
+        return 0;
+    }
+
+    @Override
     public PerformanceSearchResult getSearchResults(String phrase) {
         Map<Integer, List<String>> treeMap = new TreeMap<>(Collections.reverseOrder());
         long startTime = System.nanoTime();

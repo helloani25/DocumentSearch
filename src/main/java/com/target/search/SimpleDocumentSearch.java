@@ -8,14 +8,19 @@ public class SimpleDocumentSearch implements DocumentSearch {
     public SimpleDocumentSearch() {
         fileMapTokenzied = new HashMap<>();
     }
-    // Thread local variable containing each thread's ID
+    private long timeElapsed;
 
     @Override
     public void setup() {
         Map<String, String> fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
         long startTime = System.nanoTime();
         tokenizeText(fileMap);
-        double timeElapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+        timeElapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+    }
+
+    @Override
+    public long getPreprocessTimeElapsed() {
+        return timeElapsed;
     }
 
     @Override

@@ -54,12 +54,16 @@ public class IndexedDocumentSearch implements DocumentSearch {
     }
 
     @Override
+    public long getPreprocessTimeElapsed() {
+        return timeElapsed;
+    }
+
+    @Override
     public PerformanceSearchResult getSearchResults(String phrase) {
         try (RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http"))
                 .setRequestConfigCallback(
                         requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(5000).setSocketTimeout(360000).setConnectionRequestTimeout(0)))) {
-            PerformanceSearchResult performanceSearchResult = executeSearchRequest(client, phrase);
-            return  performanceSearchResult;
+            return executeSearchRequest(client, phrase);
 
         } catch (IOException e) {
             logger.error(e.getMessage());
@@ -167,7 +171,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
     private PerformanceSearchResult executeSearchRequest(RestHighLevelClient client, String phrase) {
         SearchRequest searchRequest = buildSearchRequest(phrase);
         SearchResponse searchResponse;
-        long timeUsed = 0;
+        long timeUsed;
         try {
             searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
             timeUsed = searchResponse.getTook().getMillis();

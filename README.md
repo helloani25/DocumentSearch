@@ -26,15 +26,17 @@ tar -xzvf elasticsearch-7.9.2.tar.gz  Attached with the project
 cd elasticsearch-7.9.2
 ./bin/elasticsearch
 ```
+##### Check if the Elasticsearch node started
+```
+http://localhost:9200
+```
+#### Running the project using gradle
 
 ```
 gradle clean build run
- ```
-##### Running the jar
+gradle clean build runMainJar 
 ```
-gradle build runMainJar 
-```
-##### Executing performance tests
+##### Executing performance tests using gradle
 ```
 gradle build runTestJar --args "'String Match'"
 gradle build runTestJar --args 1

@@ -40,7 +40,7 @@ public class SearchPerformanceTest {
                 success++;
             sum+= response.getMsUsed();
         }
-        System.out.println("Concurrency Level:         "+ Constants.CONCURRENCY_LEVEL);
+        System.out.println("Concurrency Level:          " + Constants.CONCURRENCY_LEVEL);
         double average = sum/totalNumRequests;
         System.out.println("Total number of requests :  " + totalNumRequests);
         System.out.println("Completed requests :        " + success);

@@ -123,6 +123,18 @@ Indexed Search
  17. Increase the file size to unlimited to allow large transaction logs.
  18. sysctl -w vm.max_map_count=262144
  19. Increase the addressable space to allow memory mapped files. Elasticsearch uses it address space quickly and improve performance.  This keeps the index data off the JVM heap but in memory for blazing fast access.
+ 20. How many half-open connections for which the client has not yet sent an ACK response can be kept in the queue (source)
+    ```
+    sysctl -w net.ipv4.tcp_max_syn_backlog=65536      
+    ```
+ 21. The maximum number of connections that can be queued for acceptance
+     ```
+     sysctl -w net.core.somaxconn=32768
+     ```
+ 22. The maximum number of packets in the receive queue that passed through the network interface and are waiting to be processed by the kernel.
+     ```
+     sysctl -w net.core.netdev_max_backlog=32768
+     ```
 
 
 ```

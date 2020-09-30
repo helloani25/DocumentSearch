@@ -52,6 +52,7 @@ public class RegexDocumentSearch implements DocumentSearch {
 
     private int findMatch(String content, String phrase) {
         phrase = phrase.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|:|\\?|\\-|;)","");
+        content = content.replaceAll("\\[\\d+\\]", "");
         //Match with special characters removed
         content = content.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|:|\\?|\\-|;)","" );
         int count = 0;

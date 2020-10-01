@@ -226,6 +226,8 @@ public class IndexedDocumentSearch implements DocumentSearch {
         HighlightBuilder.Field highlightTitle =
                 new HighlightBuilder.Field("content");
         highlightTitle.highlighterType("fvh");
+        highlightBuilder.numOfFragments(50);
+        highlightBuilder.phraseLimit(2000);
         highlightBuilder.field(highlightTitle);
         searchSourceBuilder.highlighter(highlightBuilder);
         searchRequest.source(searchSourceBuilder);

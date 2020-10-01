@@ -18,6 +18,9 @@ import java.util.stream.Collectors;
 
 import static java.nio.file.StandardOpenOption.*;
 
+/**
+ * Generates words and phrases to be searched
+ */
 public class GeneratePhrases {
 
     private final Map<String, String> fileMap;
@@ -26,11 +29,17 @@ public class GeneratePhrases {
     private String stopwordsRegex;
     private final static Logger logger = LogManager.getLogger(GeneratePhrases.class);
 
+    /**
+     * Read all files from sample_text.txt
+     */
     public GeneratePhrases() {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
         targetSet = new HashSet<>();
     }
 
+    /**
+     * Check if file exists before generating phrases
+     */
     public void generateRandomPhrases() {
         Path file = Paths.get(Constants.PHRASE_FIILE);
         if(Files.notExists(file) || !Files.isReadable(file)) {

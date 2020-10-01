@@ -47,9 +47,8 @@ public class DocumentSearchUtils {
                 String contents = readFile(file);
                 if (contents != null)
                     filesMap.put(file.getFileName().toString(), readFile(file)); });
-        } catch (IOException x) {
-            logger.error(x.getMessage());
-            System.err.println("caught exception: " + x.getMessage());
+        } catch (IOException e) {
+            logger.error(e);
         }
     }
 
@@ -74,9 +73,8 @@ public class DocumentSearchUtils {
                 buf.rewind();
             }
             return sb.toString();
-        } catch (IOException x) {
-            logger.error(x.getMessage());
-            System.err.println("caught exception: " + x.getMessage());
+        } catch (IOException e) {
+            logger.error(e);
         }
         return null;
     }

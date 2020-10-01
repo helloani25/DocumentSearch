@@ -87,7 +87,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
             return executeSearchRequest(client, phrase);
 
         } catch (IOException e) {
-            logger.error(e.getMessage());
+            logger.error(e);
         }
         return null;
     }
@@ -283,7 +283,4 @@ public class IndexedDocumentSearch implements DocumentSearch {
             }
         return sb;
     }
-
-
-
 }

@@ -1,5 +1,8 @@
 package com.target.search;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
@@ -21,6 +24,7 @@ public class GeneratePhrases {
     private final Set<String> targetSet;
     private Set<String> stopWordSet;
     private String stopwordsRegex;
+    private final static Logger logger = LogManager.getLogger(GeneratePhrases.class);
 
     public GeneratePhrases() {
         fileMap = DocumentSearchUtils.readDirectory(DocumentSearchConstants.DOCUMENT_SEARCH_DIRECTORY);
@@ -35,7 +39,7 @@ public class GeneratePhrases {
                 generateWords();
                 generateText();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error(e);
             }
         }
     }
@@ -125,7 +129,7 @@ public class GeneratePhrases {
                 sbc.write(bb);
             }
         } catch (IOException x) {
-            System.out.println("Exception thrown: " + x);
+            logger.error("Exception thrown: " + x);
         }
     }
 

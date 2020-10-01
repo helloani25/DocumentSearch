@@ -1,5 +1,8 @@
 package com.target.search;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -8,6 +11,8 @@ import java.util.List;
 import java.util.concurrent.*;
 
 public class SearchPerformanceTest {
+
+    private final static Logger logger = LogManager.getLogger(SearchPerformanceTest.class);
 
     public void executeSearch(DocumentSearch documentSearch, String searchType) {
         ExecutorService executor = Executors.newFixedThreadPool(Constants.CONCURRENCY_LEVEL);
@@ -22,7 +27,7 @@ public class SearchPerformanceTest {
             }
             printTestResults(futures, totalNumRequests, documentSearch.getPreprocessTimeElapsed(), searchType);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e);
         }
         executor.shutdown();
     }
@@ -53,8 +58,8 @@ public class SearchPerformanceTest {
         try {
             computeTimePerRequests(futures, totalNumRequests, preprocessTime, searchType);
         } catch (ExecutionException|InterruptedException e) {
-            System.out.println("Unable to fetch results from submitted search requests");
-            e.printStackTrace();
+            logger.info("Unable to fetch results from submitted search requests");
+            logger.error(e);
         }
     }
 

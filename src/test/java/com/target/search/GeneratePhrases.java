@@ -69,7 +69,10 @@ public class GeneratePhrases {
                 targetSet.add(words[i]);
             }
 
-            targetSet.removeIf(word -> stopWordSet.contains(word.toLowerCase()) || word.strip().length() == 0 || word.strip().equals("-"));
+            targetSet.removeIf(word -> stopWordSet.contains(word.toLowerCase())
+                    || word.strip().length() < 5
+                    || word.strip().equals("-")
+                    || word.matches("^\\d+$"));
             writeToFile();
         }
     }

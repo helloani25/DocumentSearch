@@ -25,6 +25,7 @@ import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 
 import java.io.IOException;
 import java.util.*;
@@ -75,7 +76,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
 
     /**
      * Search the phrase or keyword/term in the index target using Elasticsearch
-     * @param phrase
+     * @param phrase phrase to search for in the files
      * @return Returns if the search was successful and the time elapsed
      */
     @Override
@@ -123,6 +124,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
         Map<String, Object> jsonMap = new HashMap<>();
         Map<String, Object> content = new HashMap<>();
         content.put("type", "text");
+        content.put("term_vector", "with_positions_offsets");
         Map<String, Object> filename = new HashMap<>();
         filename.put("type", "keyword");
         //Don't have to aggregate
@@ -216,6 +218,13 @@ public class IndexedDocumentSearch implements DocumentSearch {
         String[] excludeFields = new String[]{"content"};
         searchSourceBuilder.fetchSource(includeFields, excludeFields);
         searchSourceBuilder.timeout(new TimeValue(30, TimeUnit.SECONDS));
+
+        HighlightBuilder highlightBuilder = new HighlightBuilder();
+        HighlightBuilder.Field highlightTitle =
+                new HighlightBuilder.Field("content");
+        highlightTitle.highlighterType("fvh");
+        highlightBuilder.field(highlightTitle);
+        searchSourceBuilder.highlighter(highlightBuilder);
         searchRequest.source(searchSourceBuilder);
 
         return searchRequest;
@@ -230,9 +239,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
             timeUsed = searchResponse.getTook().getMillis();
             if (searchResponse.status() == RestStatus.OK) {
                 SearchHits searchHits = searchResponse.getHits();
-                StringBuilder sb = new StringBuilder();
-                Set<String> fileSet = printMatchSearch(searchHits, sb);
-                printNoMatchSearch(fileSet, sb, timeUsed);
+                fetchAndPrintSearch(searchHits, timeUsed);
             }
             return new PerformanceSearchResult(searchResponse.status().getStatus(), timeUsed);
         } catch (IOException e) {
@@ -250,16 +257,33 @@ public class IndexedDocumentSearch implements DocumentSearch {
         System.out.println(sb.toString());
     }
 
-    private Set<String> printMatchSearch(SearchHits searchHits, StringBuilder sb) {
-        sb.append("Search Results:\n");
+    private void fetchAndPrintSearch(SearchHits searchHits, long timeUsed) {
         Set<String> fileSet = new HashSet<>();
+        Map<Integer, List<String>> treeMap = new TreeMap<>(Collections.reverseOrder());
         for (SearchHit hit : searchHits) {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+            int count = hit.getHighlightFields().get("content").getFragments().length;
             String filename = (String) sourceAsMap.get("filename");
+            List<String> list = treeMap.getOrDefault(count, new ArrayList<>());
+            list.add(filename);
+            treeMap.put(count, list);
             fileSet.add(filename);
-            sb.append(filename).append(" ").append(" - matches\n");
         }
-        return fileSet;
+        StringBuilder sb = printSearchResults(treeMap);
+        printNoMatchSearch(fileSet, sb, timeUsed);
     }
+
+    private StringBuilder printSearchResults(Map<Integer, List<String>> treeMap) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Search Results:\n");
+        for (int count: treeMap.keySet())
+            if (count != 0) {
+                for (String filename: treeMap.get(count))
+                    sb.append(filename).append(" ").append(" - matches\n");
+            }
+        return sb;
+    }
+
+
 
 }

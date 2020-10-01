@@ -19,7 +19,14 @@ Files are in sample_output directory. You can enter any of the following options
 * 3 or Indexed
 
 ##### Setting up Elasticsearch
-tar -xzvf elasticsearch-7.9.2.tar.gz  Attached with the project
+https://www.elastic.co/guide/en/elasticsearch/reference/current/targz.html
+```
+tar -xzf elasticsearch-7.9.2-linux-x86_64.tar.gz
+cd elasticsearch-7.9.2/ 
+```
+###### Setup JVM memory
+* Copy tbe jvm_options attached in the config directory config/jvm.options 
+* Copy the Elasticsearch yml file attached in the config/elasticsearch.yml
 
 ##### Running Elasticsearch
 ```
@@ -31,7 +38,6 @@ cd elasticsearch-7.9.2
 http://localhost:9200
 ```
 #### Running the project using gradle
-
 ```
 gradle clean build run
 gradle clean build runMainJar 
@@ -49,7 +55,6 @@ gradle build runTestJar --args 2
 gradle build runTestJar --args "Indexed"
 gradle build runTestJar --args 3
 ```
-
 #### Running tests for 2M searches
 
 ##### Settings needed for Indexed Search

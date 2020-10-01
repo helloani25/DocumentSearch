@@ -19,6 +19,7 @@ import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
@@ -30,6 +31,8 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Indexed search uses Elasticsearch to create an index named 'target' and all the files are written
@@ -262,7 +265,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
         Map<Integer, List<String>> treeMap = new TreeMap<>(Collections.reverseOrder());
         for (SearchHit hit : searchHits) {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
-            int count = hit.getHighlightFields().get("content").getFragments().length;
+            int count = computePhraseCount(hit.getHighlightFields().get("content").getFragments());
             String filename = (String) sourceAsMap.get("filename");
             List<String> list = treeMap.getOrDefault(count, new ArrayList<>());
             list.add(filename);
@@ -283,4 +286,17 @@ public class IndexedDocumentSearch implements DocumentSearch {
             }
         return sb;
     }
+
+    int computePhraseCount(Text[] fragments) {
+        int count = 0;
+        for (Text line: fragments) {
+            Pattern pattern = Pattern.compile("(</em>)", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(line.toString());
+            while (matcher.find()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
 }

@@ -220,14 +220,16 @@ public class IndexedDocumentSearch implements DocumentSearch {
         String[] includeFields = new String[]{"filename"};
         String[] excludeFields = new String[]{"content"};
         searchSourceBuilder.fetchSource(includeFields, excludeFields);
+        searchSourceBuilder.from(0);
+        searchSourceBuilder.size(10000);
         searchSourceBuilder.timeout(new TimeValue(30, TimeUnit.SECONDS));
 
         HighlightBuilder highlightBuilder = new HighlightBuilder();
         HighlightBuilder.Field highlightTitle =
                 new HighlightBuilder.Field("content");
         highlightTitle.highlighterType("fvh");
-        highlightBuilder.numOfFragments(50);
-        highlightBuilder.phraseLimit(2000);
+        highlightBuilder.numOfFragments(2147483647);
+        highlightBuilder.phraseLimit(2147483647);
         highlightBuilder.field(highlightTitle);
         searchSourceBuilder.highlighter(highlightBuilder);
         searchRequest.source(searchSourceBuilder);

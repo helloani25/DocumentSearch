@@ -51,10 +51,12 @@ public class RegexDocumentSearch implements DocumentSearch {
     }
 
     private int findMatch(String content, String phrase) {
-        phrase = phrase.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|:|\\?|\\-|;)","");
+        phrase = phrase.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|:|\\?|;|')","");
+        phrase = phrase.replace("-"," " );
         content = content.replaceAll("\\[\\d+\\]", "");
         //Match with special characters removed
-        content = content.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|:|\\?|\\-|;)","" );
+        content = content.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|:|\\?|;|')","" );
+        content = content.replace("-"," " );
         int count = 0;
         Pattern pattern = Pattern.compile("\\b("+phrase+")\\b", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(content);

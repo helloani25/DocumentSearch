@@ -56,7 +56,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
     }
 
     private int findMatch(String[] content, String phrase) {
-        phrase = phrase.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?|;)","" );
+        phrase = phrase.replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?|;|')","" );
         String[] tokens = phrase.split("(\\s+|\\-)");
         int j = 0, count = 0;
         for (int i = 0; i < content.length-tokens.length+1; i++) {
@@ -78,7 +78,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
             for (int i = 0; i < words.length; i++) {
                 words[i] = words[i].strip();
                 words[i] = words[i].replaceAll("\\[\\d+\\]", "");
-                words[i] = words[i].replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?|;)","" );
+                words[i] = words[i].replaceAll("(\"|!|\\[|\\]|\\(|\\)|\\,|\\.|\\:|\\?|;|')","" );
             }
             fileMapTokenzied.put(filename, words);
         }

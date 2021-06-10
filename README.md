@@ -57,6 +57,22 @@ gradle build runTestJar --args 3
 ```
 #### Running tests for 2M searches
 
+##### Elasticsearch yml changes
+
+```
+cluster.name: target-search-app
+
+thread_pool:
+    search:
+        size: 30
+        queue_size: 500
+        min_queue_size: 10
+        max_queue_size: 1000
+        auto_queue_frame_size: 2000
+        target_response_time: 1s
+indices.memory.index_buffer_size: 50%
+```
+
 ##### Settings needed for Indexed Search
 In Unix
 ```

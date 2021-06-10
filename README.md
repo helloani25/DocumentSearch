@@ -1,4 +1,4 @@
-###Target Search Case Study
+### Search Case Study
 
 ###### Tools used
 
@@ -102,14 +102,14 @@ This approach does not tokenize or preprocess the text.  Rather regular expressi
 
 ##### Indexed Search Elasticsearch
 
-Elasticsearch maintains invertex indexes and index terms. Since it's precomputed, finding a phrase or a word is as simple as an "and" operation for all the terms 
+Elasticsearch maintains inverted indices and index terms. Since it's precomputed, finding a phrase or a word is as simple as an "and" operation for all the terms 
 
 ![Alt text](inverted-index.svg?raw=true "Title")
 
 Modifying our search to include synonyms, stemmers or words with distance between them is much easier since we have indexed our documents. Further we can cache results of our queries. If we use filters these are cached as well at shard level. So in a real world application, searches are not truly random. But rather there are products or words/phrases that are trending and get searched most often.
 #### Recommendations for Production
 Indexed Search
-1. Have a cluster of multilple instances of Elasticsearch with the heap size of 32GB. Set the queues ize for the pool of threads for search or index to 2000.
+1. Have a cluster of multiple instances of Elasticsearch with the heap size of 32GB. Set the queues ize for the pool of threads for search or index to 2000.
 2. Have multiple shards for writing to the index and then merge segments when there responses are slow. 
     1. have shards of sizes between 20 - 40 GB 
     2. create multiple indices based on category of search

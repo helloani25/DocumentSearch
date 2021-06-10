@@ -51,7 +51,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
             treeMap.put(count, list);
         }
         long msUsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-        printSearchResults(treeMap, msUsed);
+        printSearchResults(treeMap, msUsed, phrase);
         return new PerformanceSearchResult(msUsed);
     }
 
@@ -84,8 +84,9 @@ public class SimpleDocumentSearch implements DocumentSearch {
         }
     }
 
-    private void printSearchResults(Map<Integer, List<String>> treeMap, long msUsed) {
+    private void printSearchResults(Map<Integer, List<String>> treeMap, long msUsed, String phrase) {
         StringBuilder sb = new StringBuilder();
+        sb.append("PHRASE : ").append(phrase).append("\n");
         sb.append("Search Results:\n");
         for (int count: treeMap.keySet())
             if (count == 0) {
@@ -93,7 +94,7 @@ public class SimpleDocumentSearch implements DocumentSearch {
                     sb.append(filename).append(" ").append(" - no match\n");
             } else {
                 for (String filename: treeMap.get(count))
-                    sb.append(filename).append(" ").append(" - matches\n");
+                    sb.append(filename).append(" ").append(" count : ").append(count).append(" - matches\n");
             }
         sb.append("Elapsed Time : ").append(msUsed).append("ms\n");
         System.out.println(sb.toString());

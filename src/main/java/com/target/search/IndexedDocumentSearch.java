@@ -192,7 +192,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
     }
 
     /**
-     * Refresh the index to make it avaialable for search. This will create the lucene segements
+     * Refresh the index to make it available for search. This will create the lucene segements
      * if it does not exist in memory
      * @param client Restclient to connect to the elasticsearch cluster/single node in our case
      */
@@ -246,7 +246,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
             timeUsed = searchResponse.getTook().getMillis();
             if (searchResponse.status() == RestStatus.OK) {
                 SearchHits searchHits = searchResponse.getHits();
-                fetchAndPrintSearch(searchHits, timeUsed);
+                fetchAndPrintSearch(searchHits, timeUsed, phrase);
             }
             return new PerformanceSearchResult(searchResponse.status().getStatus(), timeUsed);
         } catch (IOException e) {
@@ -264,7 +264,7 @@ public class IndexedDocumentSearch implements DocumentSearch {
         System.out.println(sb.toString());
     }
 
-    private void fetchAndPrintSearch(SearchHits searchHits, long timeUsed) {
+    private void fetchAndPrintSearch(SearchHits searchHits, long timeUsed, String phrase) {
         Set<String> fileSet = new HashSet<>();
         Map<Integer, List<String>> treeMap = new TreeMap<>(Collections.reverseOrder());
         for (SearchHit hit : searchHits) {
@@ -276,17 +276,18 @@ public class IndexedDocumentSearch implements DocumentSearch {
             treeMap.put(count, list);
             fileSet.add(filename);
         }
-        StringBuilder sb = printSearchResults(treeMap);
+        StringBuilder sb = printSearchResults(treeMap, phrase);
         printNoMatchSearch(fileSet, sb, timeUsed);
     }
 
-    private StringBuilder printSearchResults(Map<Integer, List<String>> treeMap) {
+    private StringBuilder printSearchResults(Map<Integer, List<String>> treeMap, String phrase) {
         StringBuilder sb = new StringBuilder();
+        sb.append("PHRASE : ").append(phrase).append("\n");
         sb.append("Search Results:\n");
         for (int count: treeMap.keySet())
             if (count != 0) {
                 for (String filename: treeMap.get(count))
-                    sb.append(filename).append(" ").append(" - matches\n");
+                    sb.append(filename).append(" ").append(" count : ").append(count).append(" - matches\n");
             }
         return sb;
     }
